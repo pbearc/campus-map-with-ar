@@ -2,4 +2,8 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="colorPrimary">#226059</color>
+    <color name="colorPrimaryDark">#192D29</color>
+    <color name="colorAccent">#41B6AA</color>
+    <color name="navigationBarColor">#226059</color>
 </resources>
