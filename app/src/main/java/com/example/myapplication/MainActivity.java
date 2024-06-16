@@ -15,11 +15,19 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentContainerView;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
 import com.google.android.material.navigation.NavigationView;
 
 public class MainActivity extends AppCompatActivity {
 
+    private FragmentContainerView fragmentContainerView;
+    private Fragment cameraFragment;
+    private Fragment twoDViewFragment;
+    private Fragment activeFragment;
     // Define the permission request code
     private static final int CAMERA_PERMISSION_REQUEST_CODE = 1001;
 
@@ -48,6 +56,15 @@ public class MainActivity extends AppCompatActivity {
         );
         drawer.addDrawerListener(toggle);
         toggle.syncState();
+
+        fragmentContainerView = findViewById(R.id.frag_container);
+
+        cameraFragment = new CameraViewFragment();
+        twoDViewFragment = new TwoDViewFragment();
+
+        // Set default fragment
+        activeFragment = cameraFragment;
+        getSupportFragmentManager().beginTransaction().replace(R.id.frag_container, activeFragment).commit();
 
         NavigationView navigationView = findViewById(R.id.navview);
         navigationView.setNavigationItemSelectedListener(item -> {
@@ -115,13 +132,28 @@ public class MainActivity extends AppCompatActivity {
 
     private void handle2dViewClick(MenuItem item){
         if (item.getTitle().equals(getString(R.string.menu_open_2d_map))) {
-            // Perform action for opening 2D map
+            // Switch to 2D view
+            switchFragment(twoDViewFragment);
             Toast.makeText(MainActivity.this, "Opening 2D map", Toast.LENGTH_SHORT).show();
             item.setTitle(getString(R.string.menu_close_2d_map));
+//            inflate TwoDViewFragment
         } else {
-            // Perform action for closing 2D map
+            // Switch to camera view
+            switchFragment(cameraFragment);
             Toast.makeText(MainActivity.this, "Closing 2D map", Toast.LENGTH_SHORT).show();
             item.setTitle(getString(R.string.menu_open_2d_map));
+//            inflate CameraViewFragment
+
+        }
+    }
+
+    private void switchFragment(Fragment fragment) {
+        if (fragment != activeFragment) {
+            FragmentManager fragmentManager = getSupportFragmentManager();
+            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+            fragmentTransaction.replace(R.id.frag_container, fragment);
+            fragmentTransaction.commit();
+            activeFragment = fragment;
         }
     }
 }
