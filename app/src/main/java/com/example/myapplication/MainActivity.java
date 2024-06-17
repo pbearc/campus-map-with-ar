@@ -5,8 +5,12 @@ import android.content.pm.PackageManager;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import androidx.appcompat.widget.SearchView;
 import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.ActionBarDrawerToggle;
@@ -20,8 +24,14 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentContainerView;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.navigation.NavigationView;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -31,6 +41,11 @@ public class MainActivity extends AppCompatActivity {
     private Fragment activeFragment;
     // Define the permission request code
     private static final int CAMERA_PERMISSION_REQUEST_CODE = 1001;
+
+    private RecyclerView recyclerView;
+    private DestinationAdapter adapter;
+    private List<String> allDestinations;
+    private List<String> filteredDestinations;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,11 +99,28 @@ public class MainActivity extends AppCompatActivity {
             return true;
         });
 
+        recyclerView = findViewById(R.id.recyclerView);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+
+        // Example list of destinations
+        allDestinations = new ArrayList<>();
+        allDestinations.add("New York");
+        allDestinations.add("Los Angeles");
+        allDestinations.add("Chicago");
+        allDestinations.add("Houston");
+        allDestinations.add("Phoenix");
+
+        filteredDestinations = new ArrayList<>(allDestinations);
+        adapter = new DestinationAdapter(filteredDestinations, this::onDestinationSelected);
+        recyclerView.setAdapter(adapter);
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+
     }
 
     // Method to request camera permission
@@ -160,8 +192,68 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.search_menu, menu);
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.search_menu, menu);
+
+        MenuItem searchItem = menu.findItem(R.id.action_search);
+        SearchView searchView = (SearchView) searchItem.getActionView();
+
+        searchView.setQueryHint("Enter desired destination");
+
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+//                if (predefinedLocations.contains(query)) {
+//                    Toast.makeText(MainActivity.this, "Location found: " + query, Toast.LENGTH_SHORT).show();
+//                } else {
+//                    Toast.makeText(MainActivity.this, "Location not recognized", Toast.LENGTH_SHORT).show();
+//                }
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                filter(newText);
+                return false;
+            }
+        });
+
+        searchItem.setOnActionExpandListener(new MenuItem.OnActionExpandListener() {
+            @Override
+            public boolean onMenuItemActionExpand(MenuItem item) {
+                recyclerView.setVisibility(View.VISIBLE);
+                Log.d("fuck", "onMenuItemActionExpand: clciked");
+                return true;
+            }
+
+            @Override
+            public boolean onMenuItemActionCollapse(MenuItem item) {
+                recyclerView.setVisibility(View.GONE);
+                return true;
+            }
+        });
+
         return true;
+    }
+
+    private void filter(String text) {
+        filteredDestinations.clear();
+        if (text.isEmpty()) {
+            filteredDestinations.addAll(allDestinations);
+        } else {
+            for (String destination : allDestinations) {
+                if (destination.toLowerCase().contains(text.toLowerCase())) {
+                    filteredDestinations.add(destination);
+                }
+            }
+        }
+        adapter.filterList(filteredDestinations);
+    }
+
+    private void onDestinationSelected(String destination) {
+        Toast.makeText(this, "Selected: " + destination, Toast.LENGTH_SHORT).show();
+        recyclerView.setVisibility(View.GONE); // Hide the RecyclerView after selection
+        // Navigate back to CameraViewFragment and show AR arrows here
     }
 
     @Override
