@@ -5,6 +5,7 @@ import android.content.pm.PackageManager;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import android.os.Bundle;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
@@ -156,4 +157,24 @@ public class MainActivity extends AppCompatActivity {
             activeFragment = fragment;
         }
     }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.search_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
+        if (id == R.id.action_search) {
+            // Handle search action
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+
 }
