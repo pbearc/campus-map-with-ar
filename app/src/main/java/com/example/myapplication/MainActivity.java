@@ -31,6 +31,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.navigation.NavigationView;
+import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -225,7 +226,6 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean onMenuItemActionExpand(MenuItem item) {
                 recyclerView.setVisibility(View.VISIBLE);
-                Log.d("fuck", "onMenuItemActionExpand: clciked");
                 return true;
             }
 
@@ -268,7 +268,17 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        // Navigate back to CameraViewFragment and show AR arrows here
+        View view = findViewById(R.id.main);
+// Navigate back to CameraViewFragment and show AR arrows here
+        Snackbar snackbar = Snackbar.make(view, destination, Snackbar.LENGTH_INDEFINITE);
+        snackbar.setAction("STOP", v -> {
+                    // Handle action button click here
+                    snackbar.dismiss(); // Dismiss the Snackbar when action is clicked
+                });
+
+        snackbar.show(); // Show the Snackbar
+
+
     }
 
     @Override
