@@ -14,6 +14,8 @@
         android:id="@+id/navview"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:menu="@menu/drawer_menu"
-        android:layout_gravity="start"/>
+        android:layout_gravity="start"
+        android:background="@color/colorPrimaryDark"
+        app:itemTextColor="@color/white"
+        app:menu="@menu/drawer_menu" />
 </androidx.drawerlayout.widget.DrawerLayout>

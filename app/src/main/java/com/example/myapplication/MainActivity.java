@@ -5,6 +5,10 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+
+import android.content.res.ColorStateList;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -14,6 +18,10 @@ import android.view.View;
 import androidx.appcompat.widget.SearchView;
 
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.ActionBarDrawerToggle;
@@ -33,6 +41,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.snackbar.Snackbar;
 
+
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -75,7 +85,10 @@ public class MainActivity extends AppCompatActivity {
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close
         );
         drawer.addDrawerListener(toggle);
+        toggle.getDrawerArrowDrawable().setColor(getResources().getColor(R.color.white));
         toggle.syncState();
+
+
 
         fragmentContainerView = findViewById(R.id.frag_container);
 
@@ -202,6 +215,31 @@ public class MainActivity extends AppCompatActivity {
         MenuItem searchItem = menu.findItem(R.id.action_search);
         SearchView searchView = (SearchView) searchItem.getActionView();
 
+        // Set query hint text color
+        EditText searchEditText = searchView.findViewById(androidx.appcompat.R.id.search_src_text);
+        searchEditText.setHintTextColor(ContextCompat.getColor(this, R.color.typehint));
+
+        // Remove default search icon
+        ImageView searchIcon = searchView.findViewById(androidx.appcompat.R.id.search_button);
+//        searchIcon.setColorFilter(R.color.colorPrimary);
+        searchIcon.setVisibility(View.GONE); // or set visibility to INVISIBLE if you want to keep the space
+
+//        back icon
+        // Set navigation icon (back arrow) color
+//        Toolbar toolbar = findViewById(R.id.toolbar);
+//        toolbar.
+
+
+        // Set close button color (if using a custom close icon drawable)
+        ImageView closeButton = searchView.findViewById(androidx.appcompat.R.id.search_close_btn);
+        Drawable closeDrawable = closeButton.getDrawable();
+        if (closeDrawable != null) {
+            closeDrawable.setColorFilter(ContextCompat.getColor(this, R.color.white), PorterDuff.Mode.SRC_ATOP);
+        }
+
+        // Set query text color
+        searchEditText.setTextColor(ContextCompat.getColor(this, R.color.white));
+
         searchView.setQueryHint("Enter desired destination");
 
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
@@ -275,6 +313,27 @@ public class MainActivity extends AppCompatActivity {
                     // Handle action button click here
                     snackbar.dismiss(); // Dismiss the Snackbar when action is clicked
                 });
+
+        View snackBarView = snackbar.getView();
+        Button button=
+                (Button) snackBarView.findViewById(com.google.android.material.R.id.snackbar_action);
+        button.setBackgroundColor(getResources().getColor(R.color.colorPrimaryLight));
+
+        // Get the color from resources
+        int whiteColor = ContextCompat.getColor(this, R.color.white);
+
+        // Create a ColorStateList with the specified color
+        ColorStateList whiteTextColor = ColorStateList.valueOf(whiteColor);
+
+        // Get the color from resources
+        int green = ContextCompat.getColor(this, R.color.colorPrimary);
+
+        // Create a ColorStateList with the specified color
+        ColorStateList greenColor = ColorStateList.valueOf(green);
+
+        snackbar.setTextColor(whiteTextColor);
+        snackbar.setActionTextColor(whiteTextColor);
+        snackbar.setBackgroundTint(green);
 
         snackbar.show(); // Show the Snackbar
 

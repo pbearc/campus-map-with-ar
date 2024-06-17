@@ -4,13 +4,13 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="16dp"
-    android:background="@color/white">
+    android:background="@color/colorPrimaryLight">
 
     <TextView
         android:id="@+id/destinationName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textSize="18sp"
-        android:textColor="@android:color/black"
-        android:background="@color/white"/>
+        android:textColor="@android:color/white"
+        android:background="@color/colorPrimaryLight"/>
 </LinearLayout>
