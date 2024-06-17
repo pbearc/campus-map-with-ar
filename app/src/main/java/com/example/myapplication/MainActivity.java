@@ -1,6 +1,7 @@
 package com.example.myapplication;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -11,6 +12,8 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import androidx.appcompat.widget.SearchView;
+
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.ActionBarDrawerToggle;
@@ -253,6 +256,18 @@ public class MainActivity extends AppCompatActivity {
     private void onDestinationSelected(String destination) {
         Toast.makeText(this, "Selected: " + destination, Toast.LENGTH_SHORT).show();
         recyclerView.setVisibility(View.GONE); // Hide the RecyclerView after selection
+
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        // Collapse the search view and hide the keyboard
+        MenuItem searchItem = toolbar.getMenu().findItem(R.id.action_search);
+        if (searchItem.isActionViewExpanded()) {
+            searchItem.collapseActionView();
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            if (imm != null) {
+                imm.hideSoftInputFromWindow(searchItem.getActionView().getWindowToken(), 0);
+            }
+        }
+
         // Navigate back to CameraViewFragment and show AR arrows here
     }
 
