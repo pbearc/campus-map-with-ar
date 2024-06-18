@@ -7,6 +7,8 @@ import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import com.mapbox.maps.MapView;
+import com.mapbox.maps.Style;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -23,6 +25,8 @@ public class TwoDViewFragment extends Fragment {
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
+
+    MapView mapView;
 
     public TwoDViewFragment() {
         // Required empty public constructor
@@ -58,7 +62,9 @@ public class TwoDViewFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_two_d_view, container, false);
+        View view = inflater.inflate(R.layout.fragment_two_d_view, container, false);
+        mapView = view.findViewById(R.id.mapView);
+        mapView.getMapboxMap().loadStyle("mapbox://styles/wjc1512/clxhrmx8m008e01qw5roffj8p");
+        return view;
     }
 }
