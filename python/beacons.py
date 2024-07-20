@@ -1,0 +1,1 @@
+target_beacons_name = ['Daikin']
