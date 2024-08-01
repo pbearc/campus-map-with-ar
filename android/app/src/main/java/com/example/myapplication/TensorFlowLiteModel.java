@@ -2,78 +2,73 @@ package com.example.myapplication;
 
 import android.content.Context;
 import android.content.res.AssetFileDescriptor;
+import android.content.res.AssetManager;
 import android.util.Log;
 
 import org.tensorflow.lite.Interpreter;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
+import java.lang.reflect.Array;
+import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.Arrays;
 
 public class TensorFlowLiteModel {
-
-    private static final String TAG = "TensorFlowLiteModel";
     private Interpreter interpreter;
-    private int inputDimension;
+    private static final String TAG = "TensorFlowLiteModel";
 
-    public TensorFlowLiteModel(Context context) {
+    public TensorFlowLiteModel(AssetManager assetManager, String modelPath) {
         try {
-            interpreter = new Interpreter(loadModelFile(context));
-            inputDimension = 1;
+            AssetFileDescriptor fileDescriptor = assetManager.openFd(modelPath);
+            FileInputStream inputStream = new FileInputStream(fileDescriptor.getFileDescriptor());
+            FileChannel fileChannel = inputStream.getChannel();
+            long startOffset = fileDescriptor.getStartOffset();
+            long declaredLength = fileDescriptor.getDeclaredLength();
+            MappedByteBuffer buffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, startOffset, declaredLength);
+            interpreter = new Interpreter(buffer);
         } catch (IOException e) {
-            Log.e(TAG, "Error loading TensorFlow Lite model: " + e.getMessage());
+            Log.e(TAG, "Error reading model", e);
         }
     }
 
-    private ByteBuffer loadModelFile(Context context) throws IOException {
-        AssetFileDescriptor fileDescriptor = context.getAssets().openFd("model.tflite");
-        FileInputStream inputStream = new FileInputStream(fileDescriptor.getFileDescriptor());
-        FileChannel fileChannel = inputStream.getChannel();
-        long startOffset = fileDescriptor.getStartOffset();
-        long declaredLength = fileDescriptor.getDeclaredLength();
-        return fileChannel.map(FileChannel.MapMode.READ_ONLY, startOffset, declaredLength);
-    }
-
-    int getInputDimension(){
-        return inputDimension;
-    }
-
-    public int predictPoint(float[] rssiValues) {
-        if (interpreter == null) {
-            Log.e(TAG, "TensorFlow Lite interpreter is not initialized.");
-            return -1; // Or handle the error appropriately
+    public static int getIndexOfMaxValue(float[] array) {
+        Log.d("output", "" + Arrays.toString(array));
+        if (array == null || array.length == 0) {
+            throw new IllegalArgumentException("Array must not be null or empty.");
         }
 
-        try {
-            // Prepare input buffer
-            ByteBuffer inputBuffer = ByteBuffer.allocateDirect(rssiValues.length * 4);
-            inputBuffer.order(ByteOrder.nativeOrder());
-            for (float value : rssiValues) {
-                inputBuffer.putFloat(value);
+        int maxIndex = 0;
+        float maxValue = array[0];
+
+        for (int i = 1; i < array.length; i++) {
+            if (array[i] > maxValue) {
+                maxValue = array[i];
+                maxIndex = i;
             }
-            inputBuffer.rewind();
-
-            // Prepare output buffer
-            int[] output = new int[1]; // Assuming single output
-            ByteBuffer outputBuffer = ByteBuffer.allocateDirect(output.length * 4);
-            outputBuffer.order(ByteOrder.nativeOrder());
-            outputBuffer.rewind();
-
-            // Run inference
-            interpreter.run(inputBuffer, outputBuffer);
-
-            // Process the output
-            outputBuffer.rewind();
-            outputBuffer.asIntBuffer().get(output);
-
-            // Return predicted point
-            return output[0];
-
-        } catch (Exception e) {
-            Log.e(TAG, "Error running TensorFlow Lite inference: " + e.getMessage());
-            return -1; // Or handle the error appropriately
         }
+
+        return maxIndex;
+    }
+
+    public int predict(float[] input) {
+        float[][] output = new float[1][4];  // Adjust size based on your output layer
+        interpreter.run(input, output);
+//        Log.d(TAG, "Output: " + arrayToString(output[0]));
+//        return output[0];
+        return getIndexOfMaxValue(output[0]);
+    }
+
+    private String arrayToString(float[] array) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("[");
+        for (int i = 0; i < array.length; i++) {
+            builder.append(array[i]);
+            if (i < array.length - 1) {
+                builder.append(", ");
+            }
+        }
+        builder.append("]");
+        return builder.toString();
     }
 }

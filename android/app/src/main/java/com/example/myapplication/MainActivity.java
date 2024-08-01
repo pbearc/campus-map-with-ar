@@ -1,13 +1,17 @@
 package com.example.myapplication;
 
-import android.bluetooth.BluetoothDevice;
-import android.content.BroadcastReceiver;
-import android.content.IntentFilter;
+import android.Manifest;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothManager;
+import android.bluetooth.le.BluetoothLeScanner;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.Manifest;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.Switch;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -20,13 +24,12 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final int REQUEST_PERMISSIONS = 1;
     private BLEScanner bleScanner;
     private TensorFlowLiteModel tfLiteModel;
     private ActivityMainBinding binding;
-    private static final int REQUEST_LOCATION_PERMISSION = 1;
-    private static final int REQUEST_BLUETOOTH_PERMISSION = 2;
-    private static final int REQUEST_BLUETOOTH_SCAN_PERMISSION = 3;
-    private final BroadcastReceiver bluetoothReceiver = new BluetoothReceiver();
+    private Switch recordSwitch;
+    private DatabaseHelper dbHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,46 +46,58 @@ public class MainActivity extends AppCompatActivity {
 
         checkPermissions();
 
+        tfLiteModel = new TensorFlowLiteModel(getAssets(), "model.tflite");
+        bleScanner = new BLEScanner(this, tfLiteModel, this);
 
-        tfLiteModel = new TensorFlowLiteModel(this);
-        bleScanner = new BLEScanner(this, tfLiteModel);
+        recordSwitch = findViewById(R.id.record_to_database);
+        recordSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> bleScanner.setRecording(isChecked));
 
+        dbHelper = new DatabaseHelper(this);
+
+        Button deleteButton = findViewById(R.id.delete_button);
+        deleteButton.setOnClickListener(v -> deleteData());
+    }
+
+    private void deleteData() {
+        dbHelper.deleteAllData();
     }
 
     private void checkPermissions() {
         List<String> permissionsNeeded = new ArrayList<>();
 
-        // Check location permission
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
+                Log.d("hey", "BLUETOOTH_SCAN");
+                permissionsNeeded.add(Manifest.permission.BLUETOOTH_SCAN);
+            }
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+                Log.d("hey", "BLUETOOTH_CONNECT");
+                permissionsNeeded.add(Manifest.permission.BLUETOOTH_CONNECT);
+            }
+        } else {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED ||
+                    ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_ADMIN) != PackageManager.PERMISSION_GRANTED) {
+                Log.d("hey", "BLUETOOTH_ADMIN");
+
+                permissionsNeeded.add(Manifest.permission.BLUETOOTH);
+                permissionsNeeded.add(Manifest.permission.BLUETOOTH_ADMIN);
+            }
+        }
+
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            Log.d("hey", "ACCESS_FINE_LOCATION");
+
             permissionsNeeded.add(Manifest.permission.ACCESS_FINE_LOCATION);
         }
 
-        // Check Bluetooth connect permission
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-            permissionsNeeded.add(Manifest.permission.BLUETOOTH_CONNECT);
-        }
-
-        // Check Bluetooth scan permission
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
-            permissionsNeeded.add(Manifest.permission.BLUETOOTH_SCAN);
-        }
-
-        // Request all necessary permissions at once
         if (!permissionsNeeded.isEmpty()) {
             ActivityCompat.requestPermissions(this, permissionsNeeded.toArray(new String[0]), REQUEST_PERMISSIONS);
         }
     }
 
-    private static final int REQUEST_PERMISSIONS = 1; // A single request code for all permissions
-
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-
-        if (permissions.length == 0 || grantResults.length == 0) {
-            Log.e("Permissions", "Permission request results are empty.");
-            return;
-        }
 
         if (requestCode == REQUEST_PERMISSIONS) {
             for (int i = 0; i < permissions.length; i++) {
@@ -97,13 +112,24 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onResume() {
+        Log.d("state", "resume");
         super.onResume();
         bleScanner.startScan();
     }
 
     @Override
     protected void onPause() {
+        Log.d("state", "pause");
+
         super.onPause();
+        bleScanner.stopScan();
+    }
+
+    @Override
+    protected void onDestroy() {
+        Log.d("state", "destroy");
+
+        super.onDestroy();
         bleScanner.stopScan();
     }
 }
