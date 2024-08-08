@@ -85,7 +85,7 @@ public class BLEScanner {
 //                return;
             }
 
-            //Log.d(TAG, "onScanResult: " + result.getDevice().getName()  +  result.getDevice().getAddress() + " RSSI: " + result.getRssi());
+//            Log.d(TAG, "onScanResult: " + result.getDevice().getName()  +  result.getDevice().getAddress() + " RSSI: " + result.getRssi());
 
             String mac = result.getDevice().getAddress();
             if (mac != null && isTargetMac(mac)) {
@@ -108,23 +108,38 @@ public class BLEScanner {
             macToRSSI.put(macAddress, rssi);
 
             MainActivity activity = mainActivity;
+            Handler mainHandler = new Handler(activity.getMainLooper());
 
-            if (macAddress.equals(targetBeaconsMac[0])) {
-                activity.runOnUiThread(() -> {
+            // Update UI on a separate background thread
+            mainHandler.post(() -> {
+                if (macAddress.equals(targetBeaconsMac[0])) {
                     TextView one = activity.findViewById(R.id.one_i);
                     one.setText(String.valueOf(rssi));
-                });
-            } else if (macAddress.equals(targetBeaconsMac[1])) {
-                activity.runOnUiThread(() -> {
+                } else if (macAddress.equals(targetBeaconsMac[1])) {
                     TextView two = activity.findViewById(R.id.two_i);
                     two.setText(String.valueOf(rssi));
-                });
-            } else if (macAddress.equals(targetBeaconsMac[2])) {
-                activity.runOnUiThread(() -> {
+                } else if (macAddress.equals(targetBeaconsMac[2])) {
                     TextView three = activity.findViewById(R.id.three_i);
                     three.setText(String.valueOf(rssi));
-                });
-            }
+                }
+            });
+
+//            if (macAddress.equals(targetBeaconsMac[0])) {
+//                activity.runOnUiThread(() -> {
+//                    TextView one = activity.findViewById(R.id.one_i);
+//                    one.setText(String.valueOf(rssi));
+//                });
+//            } else if (macAddress.equals(targetBeaconsMac[1])) {
+//                activity.runOnUiThread(() -> {
+//                    TextView two = activity.findViewById(R.id.two_i);
+//                    two.setText(String.valueOf(rssi));
+//                });
+//            } else if (macAddress.equals(targetBeaconsMac[2])) {
+//                activity.runOnUiThread(() -> {
+//                    TextView three = activity.findViewById(R.id.three_i);
+//                    three.setText(String.valueOf(rssi));
+//                });
+//            }
 
             if (isRecording && macToRSSI.size() == targetBeaconsMac.length) {
                 String point = ((TextView) activity.findViewById(R.id.cur_point)).getText().toString();
@@ -144,21 +159,18 @@ public class BLEScanner {
             }
 
             if (macToRSSI.size() == targetBeaconsMac.length) {
-                // Schedule periodic prediction
                 scheduler.scheduleAtFixedRate(() -> {
                     float[] input = new float[3];
                     for (int i = 0; i < targetBeaconsMac.length; i++) {
                         input[i] = macToRSSI.get(targetBeaconsMac[i]);
                     }
-                    Log.d("input", "" + Arrays.toString(input));
-
                     int prediction = tfmodel.predict(input);
-                    //Log.d(TAG, "Prediction: " + prediction);
-                    activity.runOnUiThread(() -> {
-                        TextView predictionView = activity.findViewById(R.id.prediction_i);
-                        predictionView.setText("" + prediction);
-                    });
 
+                    // Update the prediction TextView on the UI thread
+                    mainHandler.post(() -> {
+                        TextView predictionView = activity.findViewById(R.id.prediction_i);
+                        predictionView.setText(String.valueOf(prediction));
+                    });
                 }, 0, 1, TimeUnit.SECONDS);
             }
         }
