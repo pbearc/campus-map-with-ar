@@ -22,6 +22,13 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
+
 public class BLEScanner {
 
     private static final String TAG = "BLEScanner";
@@ -37,6 +44,9 @@ public class BLEScanner {
     private boolean isRecording = false;
     private TensorFlowLiteModel tfmodel;
     private ScheduledExecutorService scheduler;
+    private String BASE_URL = "http://192.168.43.226:5000";
+    private NavApi navApiInterface;
+    private Retrofit retrofit;
 
     public BLEScanner(Context context, TensorFlowLiteModel tfLiteModel, MainActivity mainActivity) {
         this.context = context;
@@ -53,6 +63,13 @@ public class BLEScanner {
         }
 
         scheduler = Executors.newScheduledThreadPool(1);
+
+        retrofit = new Retrofit.Builder()
+                .baseUrl(BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        navApiInterface = retrofit.create(NavApi.class);
     }
 
     public void setRecording(boolean recording) {
@@ -60,16 +77,19 @@ public class BLEScanner {
     }
 
     private final ScanCallback scanCallback = new ScanCallback() {
+
         @Override
         public void onScanResult(int callbackType, ScanResult result) {
             if (ActivityCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-                Log.e(TAG, "Bluetooth permissions not granted");
-                return;
+//                Log.e(TAG, "Bluetooth permissions not granted");
+//                return;
             }
-            Log.d(TAG, "onScanResult: " + result.getDevice().getName() + " RSSI: " + result.getRssi());
+
+            //Log.d(TAG, "onScanResult: " + result.getDevice().getName()  +  result.getDevice().getAddress() + " RSSI: " + result.getRssi());
 
             String mac = result.getDevice().getAddress();
             if (mac != null && isTargetMac(mac)) {
+                //Log.d(TAG, mac);
                 int rssi = result.getRssi();
                 addDevice(mac, rssi);
             }
@@ -108,8 +128,19 @@ public class BLEScanner {
 
             if (isRecording && macToRSSI.size() == targetBeaconsMac.length) {
                 String point = ((TextView) activity.findViewById(R.id.cur_point)).getText().toString();
-                dbHelper.insertRSSIData(macToRSSI.get(targetBeaconsMac[0]), macToRSSI.get(targetBeaconsMac[1]), macToRSSI.get(targetBeaconsMac[2]), point);
-                macToRSSI.clear();
+                navApiInterface.addFingerprint(new FingerprintPost(point, macToRSSI.get(targetBeaconsMac[0]), macToRSSI.get(targetBeaconsMac[1]), macToRSSI.get(targetBeaconsMac[2]))).enqueue(new Callback<ResponseBody>() {
+                    @Override
+                    public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                        Log.d(TAG, response.toString());
+                    }
+
+                    @Override
+                    public void onFailure(Call<ResponseBody> call, Throwable throwable) {
+                        Log.e(TAG, throwable.getMessage());
+                    }
+                });
+                //dbHelper.insertRSSIData(macToRSSI.get(targetBeaconsMac[0]), macToRSSI.get(targetBeaconsMac[1]), macToRSSI.get(targetBeaconsMac[2]), point);
+                //macToRSSI.clear();
             }
 
             if (macToRSSI.size() == targetBeaconsMac.length) {
@@ -122,7 +153,7 @@ public class BLEScanner {
                     Log.d("input", "" + Arrays.toString(input));
 
                     int prediction = tfmodel.predict(input);
-                    Log.d(TAG, "Prediction: " + prediction);
+                    //Log.d(TAG, "Prediction: " + prediction);
                     activity.runOnUiThread(() -> {
                         TextView predictionView = activity.findViewById(R.id.prediction_i);
                         predictionView.setText("" + prediction);
@@ -148,6 +179,7 @@ public class BLEScanner {
             }
         }
         bluetoothAdapter.getBluetoothLeScanner().startScan(scanCallback);
+        //Log.d(TAG, Boolean.toString(bluetoothAdapter.startDiscovery()));
         Log.d(TAG, "BLE scan started");
 
 
