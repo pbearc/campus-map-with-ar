@@ -154,7 +154,7 @@ public class BLEScanner {
                         Log.e(TAG, throwable.getMessage());
                     }
                 });
-                //dbHelper.insertRSSIData(macToRSSI.get(targetBeaconsMac[0]), macToRSSI.get(targetBeaconsMac[1]), macToRSSI.get(targetBeaconsMac[2]), point);
+                dbHelper.insertRSSIData(macToRSSI.get(targetBeaconsMac[0]), macToRSSI.get(targetBeaconsMac[1]), macToRSSI.get(targetBeaconsMac[2]), point);
                 //macToRSSI.clear();
             }
 
