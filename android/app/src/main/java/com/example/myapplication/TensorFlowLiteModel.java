@@ -41,7 +41,7 @@ public class TensorFlowLiteModel {
         int maxIndex = 0;
         float maxValue = array[0];
 
-        for (int i = 1; i < array.length; i++) {
+        for (int i = 0; i < array.length; i++) {
             if (array[i] > maxValue) {
                 maxValue = array[i];
                 maxIndex = i;
@@ -52,9 +52,9 @@ public class TensorFlowLiteModel {
     }
 
     public int predict(float[] input) {
-        float[][] output = new float[1][4];  // Adjust size based on your output layer
+        float[][] output = new float[1][3];  // Adjust size based on your output layer
         interpreter.run(input, output);
-//        Log.d(TAG, "Output: " + arrayToString(output[0]));
+        Log.d(TAG, "Output: " + arrayToString(output[0]));
 //        return output[0];
         return getIndexOfMaxValue(output[0]);
     }

@@ -164,6 +164,8 @@ public class BLEScanner {
                     for (int i = 0; i < targetBeaconsMac.length; i++) {
                         input[i] = macToRSSI.get(targetBeaconsMac[i]);
                     }
+                    Log.d("okkkkkkkkkk", "ok");
+
                     int prediction = tfmodel.predict(input);
 
                     // Update the prediction TextView on the UI thread
