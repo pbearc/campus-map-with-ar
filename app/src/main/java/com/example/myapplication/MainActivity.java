@@ -3,6 +3,8 @@ package com.example.myapplication;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
+
+import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
@@ -17,6 +19,7 @@ import android.view.MenuItem;
 import android.view.View;
 import androidx.appcompat.widget.SearchView;
 
+import android.view.ViewDebug;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
@@ -40,12 +43,26 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.snackbar.Snackbar;
+import com.mapbox.mapboxsdk.Mapbox;
+import com.mapbox.mapboxsdk.geometry.LatLng;
+import com.mapbox.mapboxsdk.maps.MapView;
+import com.mapbox.mapboxsdk.maps.MapboxMap;
+import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
+import com.mapbox.mapboxsdk.maps.Style;
+import com.mapbox.mapboxsdk.plugins.annotation.SymbolManager;
+import com.mapbox.mapboxsdk.plugins.annotation.SymbolOptions;
 
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -56,10 +73,15 @@ public class MainActivity extends AppCompatActivity {
     // Define the permission request code
     private static final int CAMERA_PERMISSION_REQUEST_CODE = 1001;
 
-    private RecyclerView recyclerView;
+    private RecyclerView destinationView;
     private DestinationAdapter adapter;
-    private List<String> allDestinations;
-    private List<String> filteredDestinations;
+    private List<PointOfInterest> allDestinations;
+    private List<PointOfInterest> filteredDestinations;
+
+    private NavApi navApiInterface;
+    private Retrofit retrofit;
+    private String BASE_URL = "http://10.0.2.2:5000";
+    final int FLOOR_NO = 4;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,12 +110,38 @@ public class MainActivity extends AppCompatActivity {
         toggle.getDrawerArrowDrawable().setColor(getResources().getColor(R.color.white));
         toggle.syncState();
 
-
-
         fragmentContainerView = findViewById(R.id.frag_container);
 
+        destinationView = findViewById(R.id.recyclerView);
+        destinationView.setLayoutManager(new LinearLayoutManager(this));
+
+        retrofit = new Retrofit.Builder()
+                .baseUrl(BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        navApiInterface = retrofit.create(NavApi.class);
+
+        allDestinations = new ArrayList<>();
+
+        navApiInterface.getPOIs(FLOOR_NO).enqueue(new Callback<List<PointOfInterest>>() {
+            @Override
+            public void onResponse(Call<List<PointOfInterest>> call, Response<List<PointOfInterest>> response) {
+                allDestinations.addAll(response.body());
+            }
+
+            @Override
+            public void onFailure(Call<List<PointOfInterest>> call, Throwable throwable) {
+                Log.e("POI", throwable.getMessage());
+            }
+        });
+
+        filteredDestinations = new ArrayList<>(allDestinations);
+        adapter = new DestinationAdapter(filteredDestinations, this::onDestinationSelected);
+        destinationView.setAdapter(adapter);
+
         cameraFragment = new CameraViewFragment();
-        twoDViewFragment = new TwoDViewFragment();
+        twoDViewFragment = new TwoDViewFragment(allDestinations, filteredDestinations, adapter);
 
         // Set default fragment
         activeFragment = cameraFragment;
@@ -116,28 +164,11 @@ public class MainActivity extends AppCompatActivity {
             return true;
         });
 
-        recyclerView = findViewById(R.id.recyclerView);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-
-        // Example list of destinations
-        allDestinations = new ArrayList<>();
-        allDestinations.add("New York");
-        allDestinations.add("Los Angeles");
-        allDestinations.add("Chicago");
-        allDestinations.add("Houston");
-        allDestinations.add("Phoenix");
-
-        filteredDestinations = new ArrayList<>(allDestinations);
-        adapter = new DestinationAdapter(filteredDestinations, this::onDestinationSelected);
-        recyclerView.setAdapter(adapter);
-
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-
-
     }
 
     // Method to request camera permission
@@ -263,13 +294,13 @@ public class MainActivity extends AppCompatActivity {
         searchItem.setOnActionExpandListener(new MenuItem.OnActionExpandListener() {
             @Override
             public boolean onMenuItemActionExpand(MenuItem item) {
-                recyclerView.setVisibility(View.VISIBLE);
+                destinationView.setVisibility(View.VISIBLE);
                 return true;
             }
 
             @Override
             public boolean onMenuItemActionCollapse(MenuItem item) {
-                recyclerView.setVisibility(View.GONE);
+                destinationView.setVisibility(View.GONE);
                 return true;
             }
         });
@@ -282,8 +313,8 @@ public class MainActivity extends AppCompatActivity {
         if (text.isEmpty()) {
             filteredDestinations.addAll(allDestinations);
         } else {
-            for (String destination : allDestinations) {
-                if (destination.toLowerCase().contains(text.toLowerCase())) {
+            for (PointOfInterest destination : allDestinations) {
+                if (destination.getName().toLowerCase().contains(text.toLowerCase())) {
                     filteredDestinations.add(destination);
                 }
             }
@@ -291,9 +322,9 @@ public class MainActivity extends AppCompatActivity {
         adapter.filterList(filteredDestinations);
     }
 
-    private void onDestinationSelected(String destination) {
-        Toast.makeText(this, "Selected: " + destination, Toast.LENGTH_SHORT).show();
-        recyclerView.setVisibility(View.GONE); // Hide the RecyclerView after selection
+    private void onDestinationSelected(PointOfInterest destination) {
+        Toast.makeText(this, "Selected: " + destination.getName(), Toast.LENGTH_SHORT).show();
+        destinationView.setVisibility(View.GONE); // Hide the RecyclerView after selection
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         // Collapse the search view and hide the keyboard
@@ -306,13 +337,17 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+        ((TwoDViewFragment) twoDViewFragment).addDestination(destination);
+
         View view = findViewById(R.id.main);
-// Navigate back to CameraViewFragment and show AR arrows here
-        Snackbar snackbar = Snackbar.make(view, destination, Snackbar.LENGTH_INDEFINITE);
+        // Navigate back to CameraView
+        // and show AR arrows here
+        Snackbar snackbar = Snackbar.make(view, destination.getName(), Snackbar.LENGTH_INDEFINITE);
         snackbar.setAction("STOP", v -> {
-                    // Handle action button click here
-                    snackbar.dismiss(); // Dismiss the Snackbar when action is clicked
-                });
+            // Handle action button click here
+            ((TwoDViewFragment) twoDViewFragment).removeDestination();
+            snackbar.dismiss(); // Dismiss the Snackbar when action is clicked
+        });
 
         View snackBarView = snackbar.getView();
         Button button=
@@ -336,8 +371,6 @@ public class MainActivity extends AppCompatActivity {
         snackbar.setBackgroundTint(green);
 
         snackbar.show(); // Show the Snackbar
-
-
     }
 
     @Override

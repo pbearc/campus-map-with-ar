@@ -6,8 +6,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-
-
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
@@ -20,7 +18,7 @@
 
         <!-- Include Fragment Container Layout -->
         <include
-            layout="@layout/fradment_manager"
+            layout="@layout/fragment_manager"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginTop="?attr/actionBarSize"
@@ -32,7 +30,5 @@
             android:layout_height="match_parent"
             android:layout_marginTop="?attr/actionBarSize"
             android:visibility="gone" />
-
-
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

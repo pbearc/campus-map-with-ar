@@ -13,14 +13,14 @@ import java.util.List;
 
 public class DestinationAdapter extends RecyclerView.Adapter<DestinationAdapter.ViewHolder> {
 
-    private List<String> destinations;
+    private List<PointOfInterest> destinations;
     private OnItemClickListener listener;
 
     public interface OnItemClickListener {
-        void onItemClick(String destination);
+        void onItemClick(PointOfInterest destination);
     }
 
-    public DestinationAdapter(List<String> destinations, OnItemClickListener listener) {
+    public DestinationAdapter(List<PointOfInterest> destinations, OnItemClickListener listener) {
         this.destinations = destinations;
         this.listener = listener;
     }
@@ -35,8 +35,8 @@ public class DestinationAdapter extends RecyclerView.Adapter<DestinationAdapter.
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        String destination = destinations.get(position);
-        holder.destinationName.setText(destination);
+        PointOfInterest destination = destinations.get(position);
+        holder.destinationName.setText(destination.getName());
         holder.itemView.setOnClickListener(v -> listener.onItemClick(destination));
     }
 
@@ -45,7 +45,7 @@ public class DestinationAdapter extends RecyclerView.Adapter<DestinationAdapter.
         return destinations.size();
     }
 
-    public void filterList(List<String> filteredList) {
+    public void filterList(List<PointOfInterest> filteredList) {
         destinations = filteredList;
         notifyDataSetChanged();
     }

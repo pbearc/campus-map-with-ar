@@ -8,4 +8,11 @@
     <string name="navigation_drawer_close">Drawer is closed</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="floor_map_id">floor-map</string>
+    <string name="poi_layout_id">poi-layout</string>
+    <string name="poi_title_id">poi-title</string>
+    <string name="poi_fill_id">poi-fill</string>
+    <string name="dest_icon_id">destination-icon-layout</string>
+    <string name="dest_icon_img">destination-icon-img</string>
+    <string name="destination_layout_id">destination-layout</string>
 </resources>
