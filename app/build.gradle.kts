@@ -36,6 +36,11 @@ android {
 }
 
 dependencies {
+    implementation ("org.tensorflow:tensorflow-lite-gpu:2.9.0") // Replace with the latest version
+    implementation ("org.tensorflow:tensorflow-lite:2.9.0")
+    implementation("com.squareup.retrofit2:retrofit:2.11.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.11.0")
+    implementation ("com.squareup.retrofit2:converter-scalars:2.11.0")
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)

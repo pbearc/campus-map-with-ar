@@ -11,6 +11,7 @@ import androidx.core.content.ContextCompat;
 import android.content.res.ColorStateList;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -24,6 +25,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
@@ -65,6 +67,11 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity {
+    private static final int REQUEST_PERMISSIONS = 1;
+    private BLEScanner bleScanner;
+    private TensorFlowLiteModel tfLiteModel;
+    private Switch recordSwitch;
+    private DatabaseHelper dbHelper;
 
     private FragmentContainerView fragmentContainerView;
     private Fragment cameraFragment;
@@ -98,6 +105,13 @@ public class MainActivity extends AppCompatActivity {
             // Request the camera permission
             requestCameraPermission();
         }
+
+        checkPermissions();
+
+        tfLiteModel = new TensorFlowLiteModel(getAssets(), "model.tflite");
+        bleScanner = new BLEScanner(this, tfLiteModel, this);
+
+        dbHelper = new DatabaseHelper(this);
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -171,6 +185,40 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private void checkPermissions() {
+        List<String> permissionsNeeded = new ArrayList<>();
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
+                Log.d("hey", "BLUETOOTH_SCAN");
+                permissionsNeeded.add(Manifest.permission.BLUETOOTH_SCAN);
+            }
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+                Log.d("hey", "BLUETOOTH_CONNECT");
+                permissionsNeeded.add(Manifest.permission.BLUETOOTH_CONNECT);
+            }
+        } else {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED ||
+                    ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_ADMIN) != PackageManager.PERMISSION_GRANTED) {
+                Log.d("hey", "BLUETOOTH_ADMIN");
+
+                permissionsNeeded.add(Manifest.permission.BLUETOOTH);
+                permissionsNeeded.add(Manifest.permission.BLUETOOTH_ADMIN);
+            }
+        }
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            Log.d("hey", "ACCESS_FINE_LOCATION");
+
+            permissionsNeeded.add(Manifest.permission.ACCESS_FINE_LOCATION);
+        }
+
+        if (!permissionsNeeded.isEmpty()) {
+            ActivityCompat.requestPermissions(this, permissionsNeeded.toArray(new String[0]), REQUEST_PERMISSIONS);
+        }
+    }
+
+
     // Method to request camera permission
     private void requestCameraPermission() {
         ActivityCompat.requestPermissions(this,
@@ -189,6 +237,16 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 // Permission denied
                 Toast.makeText(this, "Camera permission is required to use the camera", Toast.LENGTH_SHORT).show();
+            }
+        }
+
+        else if (requestCode == REQUEST_PERMISSIONS) {
+            for (int i = 0; i < permissions.length; i++) {
+                if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
+                    Log.d("Permissions", "Permission granted: " + permissions[i]);
+                } else {
+                    Log.d("Permissions", "Permission denied: " + permissions[i]);
+                }
             }
         }
     }
@@ -385,5 +443,27 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    protected void onResume() {
+        Log.d("state", "resume");
+        super.onResume();
+        bleScanner.startScan();
+    }
+
+    @Override
+    protected void onPause() {
+        Log.d("state", "pause");
+
+        super.onPause();
+        bleScanner.stopScan();
+    }
+
+    @Override
+    protected void onDestroy() {
+        Log.d("state", "destroy");
+
+        super.onDestroy();
+        bleScanner.stopScan();
+    }
 
 }

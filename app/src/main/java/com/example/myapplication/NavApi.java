@@ -11,6 +11,7 @@ import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
+import retrofit2.http.POST;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
 
@@ -19,5 +20,6 @@ public interface NavApi {
     Call<String> getFloorMap(@Path("floor_no") int floor_no);
     @GET("/localization/poi/get")
     Call<List<PointOfInterest>> getPOIs(@Query("floor_no") int floor_no);
-
+    @POST("/localization/fp/post")
+    Call<ResponseBody> addFingerprint(@Body FingerPrintPost fingerprintPost);
 }
