@@ -2,42 +2,42 @@ package com.example.myapplication;
 
 public class PointOfInterest {
     private int id;
-    private String name;
+    private String identifier;
     private double latitude;
     private double longitude;
+    private String name;
     private int z;
-    private String identifier;
 
-    public PointOfInterest(int id , String name, double latitude, double longitude, int z, String identifier){
-        this.id = id;
-        this.name = name;
-        this.latitude = latitude;
-        this.longitude = longitude;
-        this.z = z;
-        this.identifier = identifier;
+    public PointOfInterest(int id2, String name2, double latitude2, double longitude2, int z2, String identifier2) {
+        this.id = id2;
+        this.name = name2;
+        this.latitude = latitude2;
+        this.longitude = longitude2;
+        this.z = z2;
+        this.identifier = identifier2;
     }
 
     public int getZ() {
-        return z;
+        return this.z;
     }
 
     public double getLongitude() {
-        return longitude;
+        return this.longitude;
     }
 
     public double getLatitude() {
-        return latitude;
+        return this.latitude;
     }
 
     public String getName() {
-        return name;
+        return this.name;
     }
 
     public int getId() {
-        return id;
+        return this.id;
     }
 
     public String getIdentifier() {
-        return identifier;
+        return this.identifier;
     }
 }

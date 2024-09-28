@@ -3,11 +3,8 @@ package com.example.myapplication;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
-
-import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-
 import android.content.res.ColorStateList;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
@@ -15,18 +12,12 @@ import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import androidx.appcompat.widget.SearchView;
-
-import android.view.ViewDebug;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.Switch;
-import android.widget.TextView;
 import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.ActionBarDrawerToggle;
@@ -37,29 +28,14 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentContainerView;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.snackbar.Snackbar;
-import com.mapbox.mapboxsdk.Mapbox;
-import com.mapbox.mapboxsdk.geometry.LatLng;
-import com.mapbox.mapboxsdk.maps.MapView;
-import com.mapbox.mapboxsdk.maps.MapboxMap;
-import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
-import com.mapbox.mapboxsdk.maps.Style;
-import com.mapbox.mapboxsdk.plugins.annotation.SymbolManager;
-import com.mapbox.mapboxsdk.plugins.annotation.SymbolOptions;
-
-
-import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -67,28 +43,25 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity {
-    private static final int REQUEST_PERMISSIONS = 1;
-    private BLEScanner bleScanner;
-    private TensorFlowLiteModel tfLiteModel;
-    private Switch recordSwitch;
-    private DatabaseHelper dbHelper;
-
-    private FragmentContainerView fragmentContainerView;
-    private Fragment cameraFragment;
-    private Fragment twoDViewFragment;
-    private Fragment activeFragment;
-    // Define the permission request code
+    public static final String BASE_URL = "http://192.168.30.125:5000";
     private static final int CAMERA_PERMISSION_REQUEST_CODE = 1001;
-
-    private RecyclerView destinationView;
+    private static final int REQUEST_PERMISSIONS = 1;
     private DestinationAdapter adapter;
     private List<PointOfInterest> allDestinations;
+    private BLEScanner bleScanner;
+    private Fragment cameraFragment;
+    private PointOfInterest currentDestination;
+    private RecyclerView destinationView;
     private List<PointOfInterest> filteredDestinations;
-
+    private FragmentManager fragmentManager;
     private NavApi navApiInterface;
+    private OrientationSensor orientationSensor;
     private Retrofit retrofit;
-    private String BASE_URL = "http://10.0.2.2:5000";
-    final int FLOOR_NO = 4;
+    private Fragment twoDViewFragment;
+
+    public PointOfInterest getCurrentDestination() {
+        return this.currentDestination;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,88 +69,64 @@ public class MainActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.drawer_layout);
 
-        // Check if the camera permission is already granted
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
-                == PackageManager.PERMISSION_GRANTED) {
-            // You can use the camera here
+        if (ContextCompat.checkSelfPermission(this, "android.permission.CAMERA") == 0) {
             openCamera();
         } else {
-            // Request the camera permission
             requestCameraPermission();
         }
-
         checkPermissions();
-
-        tfLiteModel = new TensorFlowLiteModel(getAssets(), "model.tflite");
-        bleScanner = new BLEScanner(this, tfLiteModel, this);
-
-        dbHelper = new DatabaseHelper(this);
-
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-
-        DrawerLayout drawer = findViewById(R.id.drawer);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close
-        );
-        drawer.addDrawerListener(toggle);
-        toggle.getDrawerArrowDrawable().setColor(getResources().getColor(R.color.white));
-        toggle.syncState();
-
-        fragmentContainerView = findViewById(R.id.frag_container);
-
-        destinationView = findViewById(R.id.recyclerView);
-        destinationView.setLayoutManager(new LinearLayoutManager(this));
-
-        retrofit = new Retrofit.Builder()
+        this.retrofit = new Retrofit.Builder()
                 .baseUrl(BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
-
-        navApiInterface = retrofit.create(NavApi.class);
-
-        allDestinations = new ArrayList<>();
-
-        navApiInterface.getPOIs(FLOOR_NO).enqueue(new Callback<List<PointOfInterest>>() {
-            @Override
+        this.navApiInterface = this.retrofit.create(NavApi.class);
+        this.cameraFragment = new CameraViewFragment();
+        this.twoDViewFragment = new TwoDViewFragment();
+        this.fragmentManager = getSupportFragmentManager();
+        FragmentTransaction fragmentTransaction = this.fragmentManager.beginTransaction();
+        fragmentTransaction.add(R.id.frag_container, this.cameraFragment);
+        fragmentTransaction.add(R.id.frag_container, this.twoDViewFragment);
+        fragmentTransaction.show(this.cameraFragment);
+        fragmentTransaction.hide(this.twoDViewFragment);
+        fragmentTransaction.commit();
+        this.orientationSensor = new OrientationSensor(this, (TwoDViewFragment) this.twoDViewFragment);
+        this.bleScanner = new BLEScanner(this, this, this.navApiInterface, (TwoDViewFragment) this.twoDViewFragment, orientationSensor);
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        DrawerLayout drawer = findViewById(R.id.drawer);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.addDrawerListener(toggle);
+        toggle.getDrawerArrowDrawable().setColor(getResources().getColor(R.color.white));
+        toggle.syncState();
+        this.destinationView = findViewById(R.id.recyclerView);
+        this.destinationView.setLayoutManager(new LinearLayoutManager(this));
+        this.allDestinations = new ArrayList();
+        this.navApiInterface.getPOIs().enqueue(new Callback<List<PointOfInterest>>() {
             public void onResponse(Call<List<PointOfInterest>> call, Response<List<PointOfInterest>> response) {
-                allDestinations.addAll(response.body());
+                MainActivity.this.allDestinations.addAll(response.body());
             }
 
-            @Override
             public void onFailure(Call<List<PointOfInterest>> call, Throwable throwable) {
                 Log.e("POI", throwable.getMessage());
             }
         });
-
-        filteredDestinations = new ArrayList<>(allDestinations);
-        adapter = new DestinationAdapter(filteredDestinations, this::onDestinationSelected);
-        destinationView.setAdapter(adapter);
-
-        cameraFragment = new CameraViewFragment();
-        twoDViewFragment = new TwoDViewFragment(allDestinations, filteredDestinations, adapter);
-
-        // Set default fragment
-        activeFragment = cameraFragment;
-        getSupportFragmentManager().beginTransaction().replace(R.id.frag_container, activeFragment).commit();
-
+        this.filteredDestinations = new ArrayList(this.allDestinations);
+        this.adapter = new DestinationAdapter(this.filteredDestinations, this::onDestinationSelected);
+        this.destinationView.setAdapter(this.adapter);
         NavigationView navigationView = findViewById(R.id.navview);
         navigationView.setNavigationItemSelectedListener(item -> {
             int id = item.getItemId();
-
             if (id==R.id.voice_nav) {
                 handleVoiceNavClick(item);
                 // Perform action for turning off voice navigation
             }else if (id==R.id.twod_view){
-                    // Perform action for opening 2D map
+                // Perform action for opening 2D map
                 handle2dViewClick(item);
             }
-
             // Close the drawer after handling item click
             drawer.closeDrawers();
             return true;
         });
-
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
@@ -217,7 +166,6 @@ public class MainActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(this, permissionsNeeded.toArray(new String[0]), REQUEST_PERMISSIONS);
         }
     }
-
 
     // Method to request camera permission
     private void requestCameraPermission() {
@@ -269,124 +217,85 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void handle2dViewClick(MenuItem item){
+    private void handle2dViewClick(MenuItem item) {
+        FragmentTransaction fragmentTransaction = this.fragmentManager.beginTransaction();
         if (item.getTitle().equals(getString(R.string.menu_open_2d_map))) {
-            // Switch to 2D view
-            switchFragment(twoDViewFragment);
-            Toast.makeText(MainActivity.this, "Opening 2D map", Toast.LENGTH_SHORT).show();
+            if (this.cameraFragment.isVisible()) {
+                fragmentTransaction.hide(this.cameraFragment);
+            }
+            if (this.twoDViewFragment.isHidden()) {
+                fragmentTransaction.show(this.twoDViewFragment);
+            }
+            Toast.makeText(this, "Opening 2D map", Toast.LENGTH_SHORT).show();
             item.setTitle(getString(R.string.menu_close_2d_map));
-//            inflate TwoDViewFragment
         } else {
-            // Switch to camera view
-            switchFragment(cameraFragment);
-            Toast.makeText(MainActivity.this, "Closing 2D map", Toast.LENGTH_SHORT).show();
+            if (this.twoDViewFragment.isVisible()) {
+                fragmentTransaction.hide(this.twoDViewFragment);
+            }
+            if (this.cameraFragment.isHidden()) {
+                fragmentTransaction.show(this.cameraFragment);
+            }
+            Toast.makeText(this, "Closing 2D map", Toast.LENGTH_SHORT).show();
             item.setTitle(getString(R.string.menu_open_2d_map));
-//            inflate CameraViewFragment
-
         }
+        fragmentTransaction.commit();
     }
 
-    private void switchFragment(Fragment fragment) {
-        if (fragment != activeFragment) {
-            FragmentManager fragmentManager = getSupportFragmentManager();
-            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-            fragmentTransaction.replace(R.id.frag_container, fragment);
-            fragmentTransaction.commit();
-            activeFragment = fragment;
-        }
-    }
-
-    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.search_menu, menu);
-
+        getMenuInflater().inflate(R.menu.search_menu, menu);
         MenuItem searchItem = menu.findItem(R.id.action_search);
         SearchView searchView = (SearchView) searchItem.getActionView();
-
-        // Set query hint text color
         EditText searchEditText = searchView.findViewById(androidx.appcompat.R.id.search_src_text);
         searchEditText.setHintTextColor(ContextCompat.getColor(this, R.color.typehint));
-
-        // Remove default search icon
-        ImageView searchIcon = searchView.findViewById(androidx.appcompat.R.id.search_button);
-//        searchIcon.setColorFilter(R.color.colorPrimary);
-        searchIcon.setVisibility(View.GONE); // or set visibility to INVISIBLE if you want to keep the space
-
-//        back icon
-        // Set navigation icon (back arrow) color
-//        Toolbar toolbar = findViewById(R.id.toolbar);
-//        toolbar.
-
-
-        // Set close button color (if using a custom close icon drawable)
-        ImageView closeButton = searchView.findViewById(androidx.appcompat.R.id.search_close_btn);
-        Drawable closeDrawable = closeButton.getDrawable();
+        (searchView.findViewById(androidx.appcompat.R.id.search_button)).setVisibility(View.GONE);
+        Drawable closeDrawable = ((ImageView) searchView.findViewById(androidx.appcompat.R.id.search_close_btn)).getDrawable();
         if (closeDrawable != null) {
             closeDrawable.setColorFilter(ContextCompat.getColor(this, R.color.white), PorterDuff.Mode.SRC_ATOP);
         }
-
-        // Set query text color
         searchEditText.setTextColor(ContextCompat.getColor(this, R.color.white));
-
         searchView.setQueryHint("Enter desired destination");
-
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override
             public boolean onQueryTextSubmit(String query) {
-//                if (predefinedLocations.contains(query)) {
-//                    Toast.makeText(MainActivity.this, "Location found: " + query, Toast.LENGTH_SHORT).show();
-//                } else {
-//                    Toast.makeText(MainActivity.this, "Location not recognized", Toast.LENGTH_SHORT).show();
-//                }
                 return false;
             }
 
-            @Override
             public boolean onQueryTextChange(String newText) {
                 filter(newText);
                 return false;
             }
         });
-
         searchItem.setOnActionExpandListener(new MenuItem.OnActionExpandListener() {
-            @Override
             public boolean onMenuItemActionExpand(MenuItem item) {
                 destinationView.setVisibility(View.VISIBLE);
                 return true;
             }
 
-            @Override
             public boolean onMenuItemActionCollapse(MenuItem item) {
                 destinationView.setVisibility(View.GONE);
                 return true;
             }
         });
-
         return true;
     }
 
     private void filter(String text) {
-        filteredDestinations.clear();
+        this.filteredDestinations.clear();
         if (text.isEmpty()) {
-            filteredDestinations.addAll(allDestinations);
+            this.filteredDestinations.addAll(this.allDestinations);
         } else {
-            for (PointOfInterest destination : allDestinations) {
+            for (PointOfInterest destination : this.allDestinations) {
                 if (destination.getName().toLowerCase().contains(text.toLowerCase())) {
-                    filteredDestinations.add(destination);
+                    this.filteredDestinations.add(destination);
                 }
             }
         }
-        adapter.filterList(filteredDestinations);
+        this.adapter.filterList(this.filteredDestinations);
     }
 
     private void onDestinationSelected(PointOfInterest destination) {
         Toast.makeText(this, "Selected: " + destination.getName(), Toast.LENGTH_SHORT).show();
-        destinationView.setVisibility(View.GONE); // Hide the RecyclerView after selection
-
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        // Collapse the search view and hide the keyboard
-        MenuItem searchItem = toolbar.getMenu().findItem(R.id.action_search);
+        this.destinationView.setVisibility(View.GONE);
+        MenuItem searchItem = ((Toolbar) findViewById(R.id.toolbar)).getMenu().findItem(R.id.action_search);
         if (searchItem.isActionViewExpanded()) {
             searchItem.collapseActionView();
             InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -394,76 +303,50 @@ public class MainActivity extends AppCompatActivity {
                 imm.hideSoftInputFromWindow(searchItem.getActionView().getWindowToken(), 0);
             }
         }
-
-        ((TwoDViewFragment) twoDViewFragment).addDestination(destination);
-
-        View view = findViewById(R.id.main);
-        // Navigate back to CameraView
-        // and show AR arrows here
-        Snackbar snackbar = Snackbar.make(view, destination.getName(), Snackbar.LENGTH_INDEFINITE);
+        this.currentDestination = destination;
+        ((TwoDViewFragment) this.twoDViewFragment).addDestination(destination);
+        Snackbar snackbar = Snackbar.make(findViewById(R.id.main), destination.getName(), Snackbar.LENGTH_INDEFINITE);
         snackbar.setAction("STOP", v -> {
-            // Handle action button click here
-            ((TwoDViewFragment) twoDViewFragment).removeDestination();
-            snackbar.dismiss(); // Dismiss the Snackbar when action is clicked
+            this.currentDestination = null;
+            ((TwoDViewFragment) this.twoDViewFragment).removeDestination();
+            ((TwoDViewFragment) this.twoDViewFragment).removeRoute();
+            snackbar.dismiss();
         });
-
-        View snackBarView = snackbar.getView();
-        Button button=
-                (Button) snackBarView.findViewById(com.google.android.material.R.id.snackbar_action);
-        button.setBackgroundColor(getResources().getColor(R.color.colorPrimaryLight));
-
-        // Get the color from resources
-        int whiteColor = ContextCompat.getColor(this, R.color.white);
-
-        // Create a ColorStateList with the specified color
-        ColorStateList whiteTextColor = ColorStateList.valueOf(whiteColor);
-
-        // Get the color from resources
+        (snackbar.getView().findViewById(com.google.android.material.R.id.snackbar_action)).setBackgroundColor(getResources().getColor(R.color.colorPrimaryLight));
+        ColorStateList whiteTextColor = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.white));
         int green = ContextCompat.getColor(this, R.color.colorPrimary);
-
-        // Create a ColorStateList with the specified color
-        ColorStateList greenColor = ColorStateList.valueOf(green);
-
+        ColorStateList valueOf = ColorStateList.valueOf(green);
         snackbar.setTextColor(whiteTextColor);
         snackbar.setActionTextColor(whiteTextColor);
         snackbar.setBackgroundTint(green);
-
-        snackbar.show(); // Show the Snackbar
+        snackbar.show();
     }
 
-    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-
-        if (id == R.id.action_search) {
-            // Handle search action
+        if (item.getItemId() == R.id.action_search) {
             return true;
         }
-
         return super.onOptionsItemSelected(item);
     }
 
-    @Override
     protected void onResume() {
         Log.d("state", "resume");
         super.onResume();
-        bleScanner.startScan();
+        this.bleScanner.startScan();
+        if (this.orientationSensor != null) this.orientationSensor.startSensor();
     }
 
-    @Override
     protected void onPause() {
         Log.d("state", "pause");
-
         super.onPause();
-        bleScanner.stopScan();
+        this.bleScanner.stopScan();
+        if (this.orientationSensor != null) this.orientationSensor.stopSensor();
     }
 
-    @Override
     protected void onDestroy() {
         Log.d("state", "destroy");
-
         super.onDestroy();
-        bleScanner.stopScan();
+        this.bleScanner.stopScan();
+        if (this.orientationSensor != null) this.orientationSensor.stopSensor();
     }
-
 }

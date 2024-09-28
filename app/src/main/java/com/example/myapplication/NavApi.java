@@ -1,12 +1,6 @@
 package com.example.myapplication;
 
-import com.google.gson.JsonObject;
-
-import org.json.JSONObject;
-
 import java.util.List;
-
-import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
@@ -16,10 +10,18 @@ import retrofit2.http.Path;
 import retrofit2.http.Query;
 
 public interface NavApi {
-    @GET("/map/get/{floor_no}")
-    Call<String> getFloorMap(@Path("floor_no") int floor_no);
-    @GET("/localization/poi/get")
-    Call<List<PointOfInterest>> getPOIs(@Query("floor_no") int floor_no);
     @POST("/localization/fp/post")
-    Call<ResponseBody> addFingerprint(@Body FingerPrintPost fingerprintPost);
+    Call<ResponseBody> addFingerprint(@Body FingerPrintPost fingerPrintPost);
+
+    @GET("/map/get/{floor_no}")
+    Call<String> getFloorMap(@Path("floor_no") int i);
+
+    @GET("/localization/mac/get")
+    Call<List<Mac>> getMacs();
+
+    @GET("/localization/poi/get")
+    Call<List<PointOfInterest>> getPOIs();
+
+    @GET("/route/get/{poi_id}")
+    Call<ResponseBody> getRoute(@Path("poi_id") int i, @Query("latitude") double d, @Query("longitude") double d2, @Query("floor") int i2);
 }

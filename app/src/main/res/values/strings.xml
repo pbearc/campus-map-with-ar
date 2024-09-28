@@ -15,4 +15,6 @@
     <string name="dest_icon_id">destination-icon-layout</string>
     <string name="dest_icon_img">destination-icon-img</string>
     <string name="destination_layout_id">destination-layout</string>
+    <string name="user_position_icon_id">user-position-icon-id</string>
+    <string name="user_position_icon_img">user-position-icon-img</string>
 </resources>
