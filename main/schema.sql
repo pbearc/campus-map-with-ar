@@ -1,7 +1,5 @@
 DROP TABLE IF EXISTS poi;
-DROP TABLE IF EXISTS rp;
-DROP TABLE IF EXISTS ap;
-DROP TABLE IF EXISTS fp;
+DROP TABLE IF EXISTS mac;
 
 CREATE TABLE poi(
     id INTEGER PRIMARY KEY,
@@ -10,27 +8,14 @@ CREATE TABLE poi(
     longitude REAL NOT NULL,
     z INTEGER NOT NULL,
     identifier TEXT NOT NULL,
-    UNIQUE ( latitude, longitude )
+    UNIQUE ( latitude, longitude, z )
 );
 
-CREATE TABLE ap(
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    mac TEXT UNIQUE NOT NULL,
-    title TEXT
-);
-
-CREATE TABLE rp(
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+CREATE TABLE mac(
+    address TEXT PRIMARY KEY,
     latitude REAL NOT NULL,
     longitude REAL NOT NULL,
-    UNIQUE ( latitude, longitude )
+    z INTEGER NOT NULL,
+    UNIQUE ( latitude, longitude, z)
 );
 
-CREATE TABLE fp(
-    rp_id INTEGER,
-    ap_id INTEGER,
-    rss INTEGER NOT NULL,
-    FOREIGN KEY ( rp_id ) REFERENCES rp ( id ),
-    FOREIGN KEY ( ap_id ) REFERENCES ap ( id ),
-    PRIMARY KEY ( rp_id, ap_id )
-);
