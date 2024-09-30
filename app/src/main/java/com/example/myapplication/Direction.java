@@ -41,6 +41,6 @@ public enum Direction {
     }
 
     public static Direction getDirectionY(int zDiff){
-        return zDiff > 0 ? Direction.UP : Direction.DOWN;
+        return zDiff > 0 ? Direction.DOWN : Direction.UP;
     }
 }
