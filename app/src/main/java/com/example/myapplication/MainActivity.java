@@ -2,7 +2,10 @@ package com.example.myapplication;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+
+import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import android.content.res.ColorStateList;
@@ -58,6 +61,8 @@ public class MainActivity extends AppCompatActivity {
     private OrientationSensor orientationSensor;
     private Retrofit retrofit;
     private Fragment twoDViewFragment;
+    private String itemText; // Class variable to hold the passed itemText
+    private boolean shouldSubmitQuery = false; // Flag to indicate whether to auto-submit the search query
 
     public PointOfInterest getCurrentDestination() {
         return this.currentDestination;
@@ -132,6 +137,17 @@ public class MainActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        // Check if there is any data passed from ProfileActivity
+        Bundle extras = getIntent().getExtras();
+        if (extras != null && extras.containsKey("item_text")) {
+            itemText = extras.getString("item_text"); // Extract the text
+            shouldSubmitQuery = true; // Set the flag to true since we have received the text
+//            Toast.makeText(this, "Received: " + itemText, Toast.LENGTH_SHORT).show();
+
+            // Invalidate the options menu to call onCreateOptionsMenu() again
+            invalidateOptionsMenu();
+        }
     }
 
     private void checkPermissions() {
@@ -240,41 +256,123 @@ public class MainActivity extends AppCompatActivity {
         }
         fragmentTransaction.commit();
     }
+//
+//    @Override
+//    public boolean onCreateOptionsMenu(Menu menu) {
+//        // Inflate the menu; this adds items to the action bar
+//        getMenuInflater().inflate(R.menu.search_menu, menu);
+//
+//        // Handle SearchView setup when action_search is clicked
+//        MenuItem searchItem = menu.findItem(R.id.action_search);
+//        if (searchItem != null) {
+//            SearchView searchView = (SearchView) searchItem.getActionView();
+//            EditText searchEditText = searchView.findViewById(androidx.appcompat.R.id.search_src_text);
+//
+//            // Customize the SearchView's appearance and behavior
+//            searchEditText.setHintTextColor(ContextCompat.getColor(this, R.color.typehint));
+//            searchEditText.setTextColor(ContextCompat.getColor(this, R.color.white));
+//            searchView.setQueryHint("Enter desired destination");
+//
+//            // Set close button's color
+//            Drawable closeDrawable = ((ImageView) searchView.findViewById(androidx.appcompat.R.id.search_close_btn)).getDrawable();
+//            if (closeDrawable != null) {
+//                closeDrawable.setColorFilter(ContextCompat.getColor(this, R.color.white), PorterDuff.Mode.SRC_ATOP);
+//            }
+//
+//            // Set listener for text changes
+//            searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+//                @Override
+//                public boolean onQueryTextSubmit(String query) {
+//                    return false;
+//                }
+//
+//                @Override
+//                public boolean onQueryTextChange(String newText) {
+//                    filter(newText);
+//                    return false;
+//                }
+//            });
+//
+//            // Handle action expand/collapse
+//            searchItem.setOnActionExpandListener(new MenuItem.OnActionExpandListener() {
+//                @Override
+//                public boolean onMenuItemActionExpand(MenuItem item) {
+//                    destinationView.setVisibility(View.VISIBLE);
+//                    return true;
+//                }
+//
+//                @Override
+//                public boolean onMenuItemActionCollapse(MenuItem item) {
+//                    destinationView.setVisibility(View.GONE);
+//                    return true;
+//                }
+//            });
+//        }
+//
+//        return true;
+//    }
 
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar
         getMenuInflater().inflate(R.menu.search_menu, menu);
+
+        // Handle SearchView setup
         MenuItem searchItem = menu.findItem(R.id.action_search);
-        SearchView searchView = (SearchView) searchItem.getActionView();
-        EditText searchEditText = searchView.findViewById(androidx.appcompat.R.id.search_src_text);
-        searchEditText.setHintTextColor(ContextCompat.getColor(this, R.color.typehint));
-        (searchView.findViewById(androidx.appcompat.R.id.search_button)).setVisibility(View.GONE);
-        Drawable closeDrawable = ((ImageView) searchView.findViewById(androidx.appcompat.R.id.search_close_btn)).getDrawable();
-        if (closeDrawable != null) {
-            closeDrawable.setColorFilter(ContextCompat.getColor(this, R.color.white), PorterDuff.Mode.SRC_ATOP);
+        if (searchItem != null) {
+            SearchView searchView = (SearchView) searchItem.getActionView();
+            EditText searchEditText = searchView.findViewById(androidx.appcompat.R.id.search_src_text);
+
+            // Customize the SearchView's appearance and behavior
+            searchEditText.setHintTextColor(ContextCompat.getColor(this, R.color.typehint));
+            searchEditText.setTextColor(ContextCompat.getColor(this, R.color.white));
+            searchView.setQueryHint("Enter desired destination");
+
+            // Set close button's color
+            Drawable closeDrawable = ((ImageView) searchView.findViewById(androidx.appcompat.R.id.search_close_btn)).getDrawable();
+            if (closeDrawable != null) {
+                closeDrawable.setColorFilter(ContextCompat.getColor(this, R.color.white), PorterDuff.Mode.SRC_ATOP);
+            }
+
+            // Set listener for text changes
+            searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+                @Override
+                public boolean onQueryTextSubmit(String query) {
+                    filter(query); // Filter using the submitted query
+                    return false;
+                }
+
+                @Override
+                public boolean onQueryTextChange(String newText) {
+                    filter(newText); // Filter as text changes
+                    return false;
+                }
+            });
+
+            // Handle action expand/collapse
+            searchItem.setOnActionExpandListener(new MenuItem.OnActionExpandListener() {
+                @Override
+                public boolean onMenuItemActionExpand(MenuItem item) {
+                    destinationView.setVisibility(View.VISIBLE);
+                    return true;
+                }
+
+                @Override
+                public boolean onMenuItemActionCollapse(MenuItem item) {
+                    destinationView.setVisibility(View.GONE);
+                    return true;
+                }
+            });
+
+            // If itemText is not null and shouldSubmitQuery is true, automatically expand the SearchView and submit the query
+            if (itemText != null && shouldSubmitQuery) {
+                searchItem.expandActionView(); // Expand the SearchView
+                searchView.setQuery(itemText, true); // Set the text and submit the query
+                shouldSubmitQuery = false; // Reset the flag to avoid repeated submissions
+                searchView.clearFocus(); // Clear focus to avoid bringing up the keyboard
+            }
         }
-        searchEditText.setTextColor(ContextCompat.getColor(this, R.color.white));
-        searchView.setQueryHint("Enter desired destination");
-        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            public boolean onQueryTextSubmit(String query) {
-                return false;
-            }
 
-            public boolean onQueryTextChange(String newText) {
-                filter(newText);
-                return false;
-            }
-        });
-        searchItem.setOnActionExpandListener(new MenuItem.OnActionExpandListener() {
-            public boolean onMenuItemActionExpand(MenuItem item) {
-                destinationView.setVisibility(View.VISIBLE);
-                return true;
-            }
-
-            public boolean onMenuItemActionCollapse(MenuItem item) {
-                destinationView.setVisibility(View.GONE);
-                return true;
-            }
-        });
         return true;
     }
 
@@ -322,10 +420,25 @@ public class MainActivity extends AppCompatActivity {
         snackbar.show();
     }
 
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.action_search) {
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        // Handle action bar item clicks
+        int id = item.getItemId();
+
+        // If action_search is clicked
+        if (id == R.id.action_search) {
+            // SearchView setup is handled in onCreateOptionsMenu()
             return true;
         }
+
+        // If action_profile is clicked
+        if (id == R.id.action_profile) {
+            // Open the ProfileActivity
+            Intent intent = new Intent(this, ProfileActivity.class);
+            startActivity(intent);
+            return true;
+        }
+
         return super.onOptionsItemSelected(item);
     }
 
