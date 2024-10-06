@@ -143,10 +143,26 @@ public class MainActivity extends AppCompatActivity {
         if (extras != null && extras.containsKey("item_text")) {
             itemText = extras.getString("item_text"); // Extract the text
             shouldSubmitQuery = true; // Set the flag to true since we have received the text
-//            Toast.makeText(this, "Received: " + itemText, Toast.LENGTH_SHORT).show();
 
-            // Invalidate the options menu to call onCreateOptionsMenu() again
-            invalidateOptionsMenu();
+            // Use Handler to delay the search view expansion to ensure the menu is ready
+            new android.os.Handler().post(() -> {
+                expandSearchViewWithQuery();
+            });
+        }
+    }
+
+    private void expandSearchViewWithQuery() {
+        // Use findViewById to get the Toolbar and find the search menu item
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        MenuItem searchItem = toolbar.getMenu().findItem(R.id.action_search);
+        if (searchItem != null) {
+            SearchView searchView = (SearchView) searchItem.getActionView();
+
+            // Expand the search view and set the query
+            searchItem.expandActionView();
+            searchView.setQuery(itemText, true); // Set the text and submit the query
+            searchView.clearFocus(); // Clear focus to avoid bringing up the keyboard
+            shouldSubmitQuery = false; // Reset the flag
         }
     }
 
@@ -312,6 +328,134 @@ public class MainActivity extends AppCompatActivity {
 //        return true;
 //    }
 
+//    @Override
+//    public boolean onCreateOptionsMenu(Menu menu) {
+//        // Inflate the menu; this adds items to the action bar
+//        getMenuInflater().inflate(R.menu.search_menu, menu);
+//
+//        // Handle SearchView setup
+//        MenuItem searchItem = menu.findItem(R.id.action_search);
+//        if (searchItem != null) {
+//            SearchView searchView = (SearchView) searchItem.getActionView();
+//            EditText searchEditText = searchView.findViewById(androidx.appcompat.R.id.search_src_text);
+//
+//            // Customize the SearchView's appearance and behavior
+//            searchEditText.setHintTextColor(ContextCompat.getColor(this, R.color.typehint));
+//            searchEditText.setTextColor(ContextCompat.getColor(this, R.color.white));
+//            searchView.setQueryHint("Enter desired destination");
+//
+//            // Set close button's color
+//            Drawable closeDrawable = ((ImageView) searchView.findViewById(androidx.appcompat.R.id.search_close_btn)).getDrawable();
+//            if (closeDrawable != null) {
+//                closeDrawable.setColorFilter(ContextCompat.getColor(this, R.color.white), PorterDuff.Mode.SRC_ATOP);
+//            }
+//
+//            // Set listener for text changes
+//            searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+//                @Override
+//                public boolean onQueryTextSubmit(String query) {
+//                    filter(query); // Filter using the submitted query
+//                    return false;
+//                }
+//
+//                @Override
+//                public boolean onQueryTextChange(String newText) {
+//                    filter(newText); // Filter as text changes
+//                    return false;
+//                }
+//            });
+//
+//            // Handle action expand/collapse
+//            searchItem.setOnActionExpandListener(new MenuItem.OnActionExpandListener() {
+//                @Override
+//                public boolean onMenuItemActionExpand(MenuItem item) {
+//                    destinationView.setVisibility(View.VISIBLE);
+//                    return true;
+//                }
+//
+//                @Override
+//                public boolean onMenuItemActionCollapse(MenuItem item) {
+//                    destinationView.setVisibility(View.GONE);
+//                    return true;
+//                }
+//            });
+//
+//            // If itemText is not null and shouldSubmitQuery is true, automatically expand the SearchView and submit the query
+//            if (itemText != null && shouldSubmitQuery) {
+//                searchItem.expandActionView(); // Expand the SearchView
+//                searchView.setQuery(itemText, true); // Set the text and submit the query
+//                shouldSubmitQuery = false; // Reset the flag to avoid repeated submissions
+//                searchView.clearFocus(); // Clear focus to avoid bringing up the keyboard
+//            }
+//        }
+//
+//        return true;
+//    }
+
+//    @Override
+//    public boolean onCreateOptionsMenu(Menu menu) {
+//        // Inflate the menu; this adds items to the action bar
+//        getMenuInflater().inflate(R.menu.search_menu, menu);
+//
+//        // Handle SearchView setup
+//        MenuItem searchItem = menu.findItem(R.id.action_search);
+//        if (searchItem != null) {
+//            SearchView searchView = (SearchView) searchItem.getActionView();
+//            EditText searchEditText = searchView.findViewById(androidx.appcompat.R.id.search_src_text);
+//
+//            // Customize the SearchView's appearance and behavior
+//            searchEditText.setHintTextColor(ContextCompat.getColor(this, R.color.typehint));
+//            searchEditText.setTextColor(ContextCompat.getColor(this, R.color.white));
+//            searchView.setQueryHint("Enter desired destination");
+//
+//            // Set close button's color
+//            Drawable closeDrawable = ((ImageView) searchView.findViewById(androidx.appcompat.R.id.search_close_btn)).getDrawable();
+//            if (closeDrawable != null) {
+//                closeDrawable.setColorFilter(ContextCompat.getColor(this, R.color.white), PorterDuff.Mode.SRC_ATOP);
+//            }
+//
+//            // Set listener for text changes
+//            searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+//                @Override
+//                public boolean onQueryTextSubmit(String query) {
+//                    filter(query); // Filter using the submitted query
+//                    return false;
+//                }
+//
+//                @Override
+//                public boolean onQueryTextChange(String newText) {
+//                    filter(newText); // Filter as text changes
+//                    return false;
+//                }
+//            });
+//
+//            // Handle action expand/collapse
+//            searchItem.setOnActionExpandListener(new MenuItem.OnActionExpandListener() {
+//                @Override
+//                public boolean onMenuItemActionExpand(MenuItem item) {
+//                    destinationView.setVisibility(View.VISIBLE);
+//                    return true;
+//                }
+//
+//                @Override
+//                public boolean onMenuItemActionCollapse(MenuItem item) {
+//                    destinationView.setVisibility(View.GONE);
+//                    return true;
+//                }
+//            });
+//
+//            // If itemText is not null and shouldSubmitQuery is true, automatically expand the SearchView and submit the query
+//            if (itemText != null && shouldSubmitQuery) {
+//                searchItem.expandActionView(); // Expand the SearchView
+//                searchView.setQuery(itemText, true); // Set the text and submit the query
+//                shouldSubmitQuery = false; // Reset the flag to avoid repeated submissions
+//                searchView.clearFocus(); // Clear focus to avoid bringing up the keyboard
+//            }
+//        }
+//
+//        return true;
+//    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar
@@ -360,11 +504,13 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public boolean onMenuItemActionCollapse(MenuItem item) {
                     destinationView.setVisibility(View.GONE);
+                    // Refresh the options menu to ensure all menu items are visible
+                    invalidateOptionsMenu();
                     return true;
                 }
             });
 
-            // If itemText is not null and shouldSubmitQuery is true, automatically expand the SearchView and submit the query
+            // Automatically expand the SearchView if shouldSubmitQuery is true
             if (itemText != null && shouldSubmitQuery) {
                 searchItem.expandActionView(); // Expand the SearchView
                 searchView.setQuery(itemText, true); // Set the text and submit the query
@@ -375,6 +521,7 @@ public class MainActivity extends AppCompatActivity {
 
         return true;
     }
+
 
     private void filter(String text) {
         this.filteredDestinations.clear();
