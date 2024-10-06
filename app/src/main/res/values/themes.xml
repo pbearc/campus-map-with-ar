@@ -17,6 +17,8 @@
     <style name="CustomToolbarStyle" parent="Widget.AppCompat.Toolbar">
         <!-- Customize the navigation icon color (back arrow) -->
         <item name="navigationIconTint">@color/white</item>
+
+
     </style>
 
     <style name="Theme.MyApplication" parent="Base.Theme.MyApplication" />

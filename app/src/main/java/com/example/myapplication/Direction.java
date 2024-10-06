@@ -18,6 +18,26 @@ public enum Direction {
         this.lbDegree = lbDegree;
     }
 
+    @Override
+    public String toString() {
+        switch (this) {
+            case FRONT:
+                return "Move Forward";
+            case RIGHT:
+                return "Turn Right";
+            case BACK:
+                return "Move Backward";
+            case LEFT:
+                return "Turn Left";
+            case UP:
+                return "To Upper Floor";
+            case DOWN:
+                return "To Lower Floor";
+            default:
+                return "Unknown Direction";
+        }
+    }
+
     public int getUbDegree() {
         return ubDegree;
     }

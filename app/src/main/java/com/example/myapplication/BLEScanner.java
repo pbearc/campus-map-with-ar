@@ -98,13 +98,19 @@ public class BLEScanner {
                             JsonObject routeData = (JsonObject) new Gson().fromJson(response.body().string(), JsonObject.class);
                             JsonArray route = routeData.get("route").getAsJsonObject().get(Integer.toString(z)).getAsJsonArray();
                             int distance = routeData.get("distance").getAsInt();
+
+                            String directionString = "";
+
                             if(!routeData.get("direction").isJsonNull()){
                                 Direction xDirection = Direction.getDirectionX(routeData.get("direction").getAsDouble(), orientationSensor.getOrientation());
                                 Toast.makeText(context, xDirection.toString(), Toast.LENGTH_SHORT).show();
+//                                update snackbar with the latest xDirection.toString()
+                                directionString = xDirection.toString();
                             }
                             if(!routeData.get("floor").isJsonNull()){
                                 Direction yDirection = Direction.getDirectionY(routeData.get("floor").getAsInt());
                                 Toast.makeText(context, yDirection.toString(), Toast.LENGTH_SHORT).show();
+                                directionString = yDirection.toString();
                             }
                             List<List<Double>> floorRoute = new ArrayList<>();
                             Iterator<JsonElement> it = route.iterator();
@@ -112,7 +118,14 @@ public class BLEScanner {
                                 JsonArray coordinate = it.next().getAsJsonArray();
                                 floorRoute.add(new ArrayList<>(List.of(Double.valueOf(coordinate.get(0).getAsDouble()), Double.valueOf(coordinate.get(1).getAsDouble()))));
                             }
+
+                            // Create final variables to pass to the lambda
+                            final String finalDirectionString = directionString;
+                            final String finalTimeAndDistance = "2 min" + " | " + distance;
+                            final String finalArrivalTime = "Arrival: 12:34pm"; // Placeholder
+
                             handler.post(() -> {
+                                mainActivity.updateBottomSheetInfo(finalDirectionString, finalTimeAndDistance, finalArrivalTime);                                BLEScanner.this.twoDViewFragment.removeRoute();
                                 BLEScanner.this.twoDViewFragment.removeRoute();
                                 BLEScanner.this.twoDViewFragment.addRoute(floorRoute);
                             });
