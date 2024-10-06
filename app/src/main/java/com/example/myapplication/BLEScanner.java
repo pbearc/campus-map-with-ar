@@ -181,22 +181,34 @@ public class BLEScanner {
         }
     }
 
+    public void setLanguage(Locale locale) {
+        if (textToSpeech != null) {
+            int result = textToSpeech.setLanguage(locale);
+            if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                Log.e(TAG, "Language not supported");
+            }
+        }
+    }
+
+
     public void provideNavigationInstruction(Direction direction) {
+        // Set the language based on user selection (for example, Locale.FRENCH)
+        setLanguage(Locale.getDefault()); // Use the user's default locale or a specific locale
+
         switch (direction) {
             case LEFT:
-                speak("Turn left.");
+                speak(context.getString(R.string.turn_left)); // Use localized string
                 break;
             case RIGHT:
-                speak("Turn right.");
+                speak(context.getString(R.string.turn_right)); // Use localized string
                 break;
-//            case STRAIGHT:
-//                speak("Walk straight.");
-//                break;
             default:
-                speak("Walk straight.");
+                speak(context.getString(R.string.walk_straight)); // Use localized string
                 break;
         }
     }
+
+
 
 
     public void shutdownTTS() {

@@ -3,9 +3,11 @@ package com.example.myapplication;
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import android.content.res.ColorStateList;
@@ -127,6 +129,8 @@ public class MainActivity extends AppCompatActivity {
             }else if (id==R.id.twod_view){
                 // Perform action for opening 2D map
                 handle2dViewClick(item);
+            }else if (id==R.id.change_language){
+                changeLanguage();
             }
             // Close the drawer after handling item click
             drawer.closeDrawers();
@@ -149,6 +153,8 @@ public class MainActivity extends AppCompatActivity {
             invalidateOptionsMenu();
         }
     }
+
+
 
     private void checkPermissions() {
         List<String> permissionsNeeded = new ArrayList<>();
@@ -219,6 +225,49 @@ public class MainActivity extends AppCompatActivity {
     private void openCamera() {
         // Implement your logic to open the camera here
         Toast.makeText(this, "Camera permission granted. Now you can use the camera.", Toast.LENGTH_SHORT).show();
+    }
+
+    private void changeLanguage() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Choose Language")
+                .setItems(new String[]{"English", "French", "Indonesian", "Chinese", "Malay"}, (dialog, which) -> {
+                    switch (which) {
+                        case 0: // English
+                            setAppLanguage("en");
+                            break;
+                        case 1: // French
+                            setAppLanguage("fr");
+                            break;
+                        case 2: // Indonesian
+                            setAppLanguage("id");
+                            break;
+                        case 3: // Chinese
+                            setAppLanguage("zh");
+                            break;
+                        case 4: // Malay
+                            setAppLanguage("ms");
+                            break;
+                    }
+                });
+        builder.create().show();
+    }
+
+    private void setAppLanguage(String lang) {
+        // Save the selected language in SharedPreferences
+        SharedPreferences preferences = getSharedPreferences("app_prefs", MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putString("language", lang);
+        editor.apply();
+
+        // Update the locale and restart the activity
+        LocaleHelper.setLocale(this, lang);
+        recreate(); // Restart the activity to apply the new language
+    }
+
+    private void loadLanguage() {
+        SharedPreferences preferences = getSharedPreferences("app_prefs", MODE_PRIVATE);
+        String language = preferences.getString("language", "en"); // Default to English
+        LocaleHelper.setLocale(this, language);
     }
 
     private void handleVoiceNavClick(MenuItem item) {
