@@ -7,6 +7,7 @@ import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanResult;
 import android.content.Context;
 import android.os.Handler;
+import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -20,6 +21,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
@@ -35,6 +37,7 @@ public class BLEScanner {
     private MainActivity mainActivity;
     private NavApi navApiInterface;
     private Prediction previousPrediction;
+    private TextToSpeech textToSpeech;
 
     private final ScanCallback scanCallback = new ScanCallback() {
         public void onScanResult(int callbackType, ScanResult result) {
@@ -97,6 +100,8 @@ public class BLEScanner {
                             if(!routeData.get("direction").isJsonNull()){
                                 Direction xDirection = Direction.getDirectionX(routeData.get("direction").getAsDouble(), orientationSensor.getOrientation());
                                 Toast.makeText(context, xDirection.toString(), Toast.LENGTH_SHORT).show();
+
+                                provideNavigationInstruction(xDirection);
                             }
                             if(!routeData.get("floor").isJsonNull()){
                                 Direction yDirection = Direction.getDirectionY(routeData.get("floor").getAsInt());
@@ -153,6 +158,52 @@ public class BLEScanner {
                 Log.e(BLEScanner.TAG, throwable.getMessage());
             }
         });
+
+        // Initialize Text-to-Speech
+        textToSpeech = new TextToSpeech(context2, new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                if (status == TextToSpeech.SUCCESS) {
+                    int result = textToSpeech.setLanguage(Locale.US);
+                    if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                        Log.e(TAG, "Language not supported");
+                    }
+                } else {
+                    Log.e(TAG, "Initialization failed");
+                }
+            }
+        });
+    }
+
+    private void speak(String message) {
+        if (textToSpeech != null) {
+            textToSpeech.speak(message, TextToSpeech.QUEUE_FLUSH, null, null);
+        }
+    }
+
+    public void provideNavigationInstruction(Direction direction) {
+        switch (direction) {
+            case LEFT:
+                speak("Turn left.");
+                break;
+            case RIGHT:
+                speak("Turn right.");
+                break;
+//            case STRAIGHT:
+//                speak("Walk straight.");
+//                break;
+            default:
+                speak("Walk straight.");
+                break;
+        }
+    }
+
+
+    public void shutdownTTS() {
+        if (textToSpeech != null) {
+            textToSpeech.stop();
+            textToSpeech.shutdown();
+        }
     }
 
     public void startScan() {
