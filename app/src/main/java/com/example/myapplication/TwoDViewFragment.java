@@ -83,6 +83,8 @@ public class TwoDViewFragment extends Fragment {
                         style.addImage(TwoDViewFragment.this.getString(R.string.dest_icon_img), destination_icon);
                         style.addImage(TwoDViewFragment.this.getString(R.string.user_position_icon_img), user_position_icon);
                         SymbolManager unused = TwoDViewFragment.this.userPositionManager = new SymbolManager(TwoDViewFragment.this.mapView, mapboxMap, style);
+                        userPositionManager.setIconAllowOverlap(true);
+                        userPositionManager.setIconIgnorePlacement(true);
                         TwoDViewFragment.this.userPositionManager.setIconAllowOverlap(true);
                         LineManager unused2 = TwoDViewFragment.this.navRouteManager = new LineManager(TwoDViewFragment.this.mapView, mapboxMap, style);
                     }
@@ -140,8 +142,8 @@ public class TwoDViewFragment extends Fragment {
                         public void onStyleLoaded(Style style) {
                             SymbolLayer destinationIcon = new SymbolLayer(TwoDViewFragment.this.getString(R.string.dest_icon_id), TwoDViewFragment.this.getString(R.string.floor_map_id)).withProperties(PropertyFactory.iconImage(TwoDViewFragment.this.getString(R.string.dest_icon_img)), PropertyFactory.iconSize(Float.valueOf(0.5f)), PropertyFactory.iconAllowOverlap((Boolean) true)).withFilter(Expression.eq(Expression.get("identifier"), Expression.literal(destination.getIdentifier())));
                             LineLayer destinationLayout = new LineLayer(TwoDViewFragment.this.getString(R.string.destination_layout_id), TwoDViewFragment.this.getString(R.string.floor_map_id)).withProperties(PropertyFactory.lineWidth(Float.valueOf(3.0f)), PropertyFactory.lineColor("#FF0000")).withFilter(Expression.eq(Expression.get("identifier"), Expression.literal(destination.getIdentifier())));
-                            style.addLayer(destinationIcon);
-                            style.addLayer(destinationLayout);
+                            style.addLayerAbove(destinationIcon, getString(R.string.poi_title_id));
+                            style.addLayerAbove(destinationLayout, getString(R.string.poi_layout_id));
                         }
                     });
                 }
