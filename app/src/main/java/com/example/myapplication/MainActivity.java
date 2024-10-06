@@ -46,7 +46,7 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity {
-    public static final String BASE_URL = "http://192.168.30.125:5000";
+    public static final String BASE_URL = "http://172.31.99.132:5001";
     private static final int CAMERA_PERMISSION_REQUEST_CODE = 1001;
     private static final int REQUEST_PERMISSIONS = 1;
     private DestinationAdapter adapter;
