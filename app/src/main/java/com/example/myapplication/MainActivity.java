@@ -46,7 +46,7 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity {
-    public static final String BASE_URL = "http://172.31.99.132:5001";
+    public static final String BASE_URL = "http://192.168.30.125:5000";
     private static final int CAMERA_PERMISSION_REQUEST_CODE = 1001;
     private static final int REQUEST_PERMISSIONS = 1;
     private DestinationAdapter adapter;
@@ -94,8 +94,9 @@ public class MainActivity extends AppCompatActivity {
         fragmentTransaction.show(this.cameraFragment);
         fragmentTransaction.hide(this.twoDViewFragment);
         fragmentTransaction.commit();
-        this.orientationSensor = new OrientationSensor(this, (TwoDViewFragment) this.twoDViewFragment);
+        this.orientationSensor = new OrientationSensor(this, (TwoDViewFragment) this.twoDViewFragment, this.navApiInterface);
         this.bleScanner = new BLEScanner(this, this, this.navApiInterface, (TwoDViewFragment) this.twoDViewFragment, orientationSensor);
+        this.orientationSensor.setBleScanner(this.bleScanner);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         DrawerLayout drawer = findViewById(R.id.drawer);

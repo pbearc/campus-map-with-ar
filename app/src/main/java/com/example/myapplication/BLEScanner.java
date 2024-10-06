@@ -36,6 +36,10 @@ public class BLEScanner {
     private NavApi navApiInterface;
     private Prediction previousPrediction;
 
+    public Prediction getPreviousPrediction(){
+        return this.previousPrediction;
+    }
+
     private final ScanCallback scanCallback = new ScanCallback() {
         public void onScanResult(int callbackType, ScanResult result) {
             if (ActivityCompat.checkSelfPermission(BLEScanner.this.context, "android.permission.BLUETOOTH_CONNECT") != 0) {
