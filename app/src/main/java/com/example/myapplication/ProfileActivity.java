@@ -49,14 +49,14 @@ public class ProfileActivity extends AppCompatActivity implements OnItemClickLis
         // Prepare data
         itemList = new ArrayList<>();
         itemList.add(new SectionItem(SectionItem.TYPE_HEADER, "Today, 4 Oct", null));
-        itemList.add(new SectionItem(SectionItem.TYPE_ITEM, "FIT3181 Tutorial", "3161"));
-        itemList.add(new SectionItem(SectionItem.TYPE_ITEM, "FIT2102 Tutorial","3161"));
+        itemList.add(new SectionItem(SectionItem.TYPE_ITEM, "FIT3181 Tutorial", "2408 | Discussion Room"));
+        itemList.add(new SectionItem(SectionItem.TYPE_ITEM, "FIT2102 Tutorial","2435"));
         itemList.add(new SectionItem(SectionItem.TYPE_HEADER, "Monday, 7 Oct",null));
-        itemList.add(new SectionItem(SectionItem.TYPE_ITEM, "FIT3162 Lecture","3161"));
-        itemList.add(new SectionItem(SectionItem.TYPE_ITEM, "FIT 3143 Tutorial","3161"));
+        itemList.add(new SectionItem(SectionItem.TYPE_ITEM, "FIT3162 Lecture","2407"));
+        itemList.add(new SectionItem(SectionItem.TYPE_ITEM, "FIT 3143 Tutorial","2420"));
         itemList.add(new SectionItem(SectionItem.TYPE_HEADER, "Tuesday, 8 Oct",null));
-        itemList.add(new SectionItem(SectionItem.TYPE_ITEM, "FIT3162 Lecture","3161"));
-        itemList.add(new SectionItem(SectionItem.TYPE_ITEM, "FIT 3143 Tutorial","3161"));
+        itemList.add(new SectionItem(SectionItem.TYPE_ITEM, "FIT3162 Lecture","2416"));
+        itemList.add(new SectionItem(SectionItem.TYPE_ITEM, "FIT 3143 Tutorial","2419"));
 
         // Set adapter
         sectionAdapter = new SectionAdapter(itemList, this);
