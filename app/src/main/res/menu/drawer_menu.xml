@@ -9,4 +9,7 @@
     <item
         android:id="@+id/twod_view"
         android:title="@string/menu_open_2d_map" />
+    <item
+        android:id="@+id/change_language"
+        android:title="@string/menu_change_language" />
 </menu>
