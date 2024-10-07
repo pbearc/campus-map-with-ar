@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">CampusARQuest</string>
+    <string name="menu_open_2d_map">Buka Peta 2D</string>
+    <string name="menu_close_2d_map">Tutup Peta 2D</string>
+    <string name="menu_turn_on_voice">Hidupkan Navigasi Suara</string>
+    <string name="menu_turn_off_voice">Matikan Navigasi Suara</string>
+    <string name="navigation_drawer_open">Laci dibuka</string>
+    <string name="navigation_drawer_close">Laci ditutup</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Halo fragmen kosong</string>
+    <string name="floor_map_id">peta-lantai</string>
+    <string name="poi_layout_id">susunatur-atau</string>
+    <string name="poi_title_id">tajuk-atau</string>
+    <string name="poi_fill_id">isi-atau</string>
+    <string name="dest_icon_id">susunatur-ikon-destinasi</string>
+    <string name="dest_icon_img">imej-ikon-destinasi</string>
+    <string name="destination_layout_id">susunatur-destinasi</string>
+    <string name="user_position_icon_id">ikon-posisi-pengguna</string>
+    <string name="user_position_icon_img">imej-ikon-posisi-pengguna</string>
+    <string name="turn_left">Belok kiri.</string>
+    <string name="turn_right">Belok kanan.</string>
+    <string name="walk_straight">Jalan lurus.</string>
+    <string name="menu_change_language">Tukar Bahasa</string>
+</resources>
