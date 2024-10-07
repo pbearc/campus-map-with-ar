@@ -109,6 +109,7 @@ public class BLEScanner {
                                 Toast.makeText(context, xDirection.toString(), Toast.LENGTH_SHORT).show();
 //                                update snackbar with the latest xDirection.toString()
                                 directionString = xDirection.toString();
+                                provideNavigationInstruction(xDirection);
                             }
                             if(!routeData.get("floor").isJsonNull()){
                                 Direction yDirection = Direction.getDirectionY(routeData.get("floor").getAsInt());

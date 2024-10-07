@@ -5,18 +5,15 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.Locale;
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;
@@ -35,24 +32,46 @@ public class OrientationSensor implements SensorEventListener {
     private MainActivity mainActivity;
     private NavApi navApiInterface;
     private BLEScanner bleScanner;
+    private TextToSpeech textToSpeech;
+    private Context context;
 
     public OrientationSensor(Context context, TwoDViewFragment twoDViewFragment2, NavApi navApiInterface) {
+        this.context = context;
         this.sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         this.accelerometer = this.sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         this.magnetometer = this.sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
         this.twoDViewFragment = twoDViewFragment2;
         this.mainActivity = (MainActivity) context;
         this.navApiInterface = navApiInterface;
+
+        // Initialize Text-to-Speech
+        textToSpeech = new TextToSpeech(context, status -> {
+            if (status == TextToSpeech.SUCCESS) {
+                int result = textToSpeech.setLanguage(Locale.getDefault());
+                if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                    Log.e("OrientationSensor", "Language not supported");
+                }
+            } else {
+                Log.e("OrientationSensor", "Initialization failed");
+            }
+        });
     }
 
     public void startSensor() {
-        this.sensorManager.registerListener(this, this.accelerometer, 2);
-        this.sensorManager.registerListener(this, this.magnetometer, 2);
+        this.sensorManager.registerListener(this, this.accelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+        this.sensorManager.registerListener(this, this.magnetometer, SensorManager.SENSOR_DELAY_NORMAL);
     }
 
     public void stopSensor() {
         this.sensorManager.unregisterListener(this, this.accelerometer);
         this.sensorManager.unregisterListener(this, this.magnetometer);
+    }
+
+    public void shutdownTTS() {
+        if (textToSpeech != null) {
+            textToSpeech.stop();
+            textToSpeech.shutdown();
+        }
     }
 
     public double getOrientation(){
@@ -63,35 +82,39 @@ public class OrientationSensor implements SensorEventListener {
         this.bleScanner = bleScanner;
     }
 
+    @Override
     public void onSensorChanged(SensorEvent event) {
-        if (event.sensor.getType() == 1) {
-            this.accelerometer_values = event.values;
-        } else if (event.sensor.getType() == 2) {
-            this.magnetometer_values = event.values;
+        if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+            this.accelerometer_values = event.values.clone();
+        } else if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
+            this.magnetometer_values = event.values.clone();
         }
         if (this.accelerometer_values != null && this.magnetometer_values != null) {
             float[] rotation_matrix = new float[9];
             float[] orientation_values = new float[3];
-            if (SensorManager.getRotationMatrix(rotation_matrix, new float[9], this.accelerometer_values, this.magnetometer_values)) {
+            if (SensorManager.getRotationMatrix(rotation_matrix, null, this.accelerometer_values, this.magnetometer_values)) {
                 SensorManager.getOrientation(rotation_matrix, orientation_values);
             }
-            float f = orientation_values[1];
-            float f2 = orientation_values[2];
-            orientation = (180.0d * ((double) orientation_values[0])) / 3.141592653589793d;
+            orientation = Math.toDegrees(orientation_values[0]);
+            if (orientation < 0) {
+                orientation += 360;
+            }
+
             if (this.twoDViewFragment.isInitializedMap()) {
-                this.twoDViewFragment.updateCameraBearing(Double.valueOf(orientation < 0.0d ? 360.0d + orientation : orientation));
+                this.twoDViewFragment.updateCameraBearing(orientation);
             }
             CardinalDirection cardinalDirection = CardinalDirection.normalizeDegree(orientation);
             if (cardinalDirection != this.prevCardinalDirection){
-                if(this.mainActivity.getCurrentDestination() != null){
+                if(this.mainActivity.getCurrentDestination() != null && bleScanner != null && bleScanner.getPreviousPrediction() != null){
                     navApiInterface.getRoute(this.mainActivity.getCurrentDestination().getId(), bleScanner.getPreviousPrediction().getMac().getLongitude(), bleScanner.getPreviousPrediction().getMac().getLatitude(), bleScanner.getPreviousPrediction().getMac().getZ()).enqueue(new Callback<ResponseBody>() {
                         @Override
                         public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                             try {
-                                JsonObject routeData = (JsonObject) new Gson().fromJson(response.body().string(), JsonObject.class);
+                                JsonObject routeData = new Gson().fromJson(response.body().string(), JsonObject.class);
                                 if(!routeData.get("direction").isJsonNull()){
-                                    Direction xDirection = Direction.getDirectionX(routeData.get("direction").getAsDouble(), orientation < 0.0d ? 360.0d + orientation : orientation);
+                                    Direction xDirection = Direction.getDirectionX(routeData.get("direction").getAsDouble(), orientation);
                                     Toast.makeText(mainActivity, xDirection.toString(), Toast.LENGTH_SHORT).show();
+                                    provideNavigationInstruction(xDirection); // Provide audio instruction
                                 }
                             } catch (IOException e) {
                                 throw new RuntimeException(e);
@@ -111,6 +134,39 @@ public class OrientationSensor implements SensorEventListener {
         }
     }
 
+    @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
+    }
+
+    private void speak(String message) {
+        if (textToSpeech != null) {
+            textToSpeech.speak(message, TextToSpeech.QUEUE_FLUSH, null, null);
+        }
+    }
+
+    public void setLanguage(Locale locale) {
+        if (textToSpeech != null) {
+            int result = textToSpeech.setLanguage(locale);
+            if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                Log.e("OrientationSensor", "Language not supported");
+            }
+        }
+    }
+
+    public void provideNavigationInstruction(Direction direction) {
+        // Set the language based on user selection
+        setLanguage(Locale.getDefault());
+
+        switch (direction) {
+            case LEFT:
+                speak(context.getString(R.string.turn_left));
+                break;
+            case RIGHT:
+                speak(context.getString(R.string.turn_right));
+                break;
+            default:
+                speak(context.getString(R.string.walk_straight));
+                break;
+        }
     }
 }
