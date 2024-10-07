@@ -47,3 +47,12 @@ def add_fp():
 def get_fp(point):
     fp = get_db().execute(f"SELECT * FROM rssi_fingerprint WHERE point = '{point}'").fetchone()
     return jsonify({"point": fp['point'], "mac1_rssi": fp['mac1_rssi'], "mac2_rssi": fp['mac2_rssi'], "mac3_rssi": fp['mac3_rssi']})
+
+@bp.post('/mac/post')
+def post_mac():
+    db = get_db()
+    mac = request.json 
+    address, latitude, longitude, floor = mac['address'], mac['latitude'], mac['longitude'], mac['floor']
+    db.execute(f"INSERT INTO mac (address, latitude, longitude, z) VALUES ('{address}', {latitude}, {longitude}, {floor})")
+    db.commit()
+    return redirect(url_for('localization.get_macs'))

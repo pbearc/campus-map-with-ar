@@ -1,5 +1,6 @@
 const fs = require('node:fs')
 const path = require('node:path')
+const xlsx = require('xlsx')
 
 const route_map_path = path.join(__dirname, '../main/route')
 const routes = fs.readdirSync(route_map_path).filter(file => file.endsWith('.geojson'))
@@ -38,3 +39,29 @@ for (const file of base_maps){
         }
     }
 }
+
+const loadExcelSheetAsJSON = (filePath, sheetIndex = 0) => {
+  const workbook = xlsx.readFile(filePath);
+  const sheetName = workbook.SheetNames[sheetIndex];
+  const worksheet = workbook.Sheets[sheetName];
+  return xlsx.utils.sheet_to_json(worksheet);
+};
+
+const beaconDataFilePath = path.join(__dirname, './beaconid.xlsx');
+const beaconDataJSON = loadExcelSheetAsJSON(beaconDataFilePath);
+
+beaconDataJSON.forEach(mac => {
+    fetch(`http://127.0.0.1:5000/localization/mac/post`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            'address': mac.Address,
+            'latitude': mac.Latitude,
+            'longitude': mac.Longitude,
+            'floor': mac.Floor
+        })
+    })
+})
+

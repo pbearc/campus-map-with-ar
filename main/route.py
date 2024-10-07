@@ -56,7 +56,8 @@ class Graph:
         self.vertices[SOURCE_V] = s_vertex
         s_vertex.add_adjacent_vertices(Edge(s_vertex, nearest_neighbour, distance))
         for adj in nearest_neighbour.adj:
-            s_vertex.add_adjacent_vertices(Edge(s_vertex, adj.v, self.compute_gcd(s_vertex, adj.v)))
+            if s_vertex.z == adj.v.z:
+                s_vertex.add_adjacent_vertices(Edge(s_vertex, adj.v, self.compute_gcd(s_vertex, adj.v)))
         # if nearest_neighbour.rep is not None:
         #     for adj in nearest_neighbour.adj:
         #         s_vertex.add_adjacent_vertices(Edge(s_vertex, adj.v, self.compute_gcd(s_vertex, adj.v)))
