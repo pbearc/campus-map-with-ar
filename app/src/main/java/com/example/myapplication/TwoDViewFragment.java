@@ -7,6 +7,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import androidx.annotation.NonNull;
 import androidx.core.internal.view.SupportMenu;
 import androidx.fragment.app.Fragment;
 import com.mapbox.mapboxsdk.Mapbox;
@@ -129,9 +131,24 @@ public class TwoDViewFragment extends Fragment {
 
     public void addStyle(Style style, String source) {
         style.addSource(new GeoJsonSource(getString(R.string.floor_map_id), source));
-        style.addLayer(new LineLayer(getString(R.string.poi_layout_id), getString(R.string.floor_map_id)));
-        style.addLayer(new FillLayer(getString(R.string.poi_fill_id), getString(R.string.floor_map_id)).withProperties(PropertyFactory.fillColor(Color.parseColor("#6db682")), PropertyFactory.fillOpacity(Float.valueOf(0.5f))).withFilter(Expression.eq(Expression.get("isRoute"), Expression.literal(false))));
-        style.addLayer(new SymbolLayer(getString(R.string.poi_title_id), getString(R.string.floor_map_id)).withProperties(PropertyFactory.textField(Expression.get("title")), PropertyFactory.textSize(Float.valueOf(10.0f))).withFilter(Expression.eq(Expression.get("isRoute"), Expression.literal(false))));
+        //style.addLayer(new LineLayer(getString(R.string.poi_layout_id), getString(R.string.floor_map_id)));
+        SymbolLayer symbolLayer = new SymbolLayer(getString(R.string.poi_title_id), getString(R.string.floor_map_id)).withProperties(PropertyFactory.textField(Expression.get("title")), PropertyFactory.textSize(Float.valueOf(10.0f))).withFilter(Expression.eq(Expression.get("isRoute"), Expression.literal(false)));
+        LineLayer lineLayer = new LineLayer(getString(R.string.poi_layout_id), getString(R.string.floor_map_id));
+        FillLayer fillLayer = new FillLayer(getString(R.string.poi_fill_id), getString(R.string.floor_map_id)).withProperties(PropertyFactory.fillColor(Color.parseColor("#6db682")), PropertyFactory.fillOpacity(Float.valueOf(0.5f))).withFilter(Expression.eq(Expression.get("isRoute"), Expression.literal(false)));
+        if (style.getLayer(getString(R.string.destination_layout_id)) == null){
+            style.addLayer(lineLayer);
+        } else {
+            style.addLayerBelow(lineLayer, getString(R.string.destination_layout_id));
+        }
+        if (style.getLayer(getString(R.string.dest_icon_id)) == null){
+            style.addLayer(fillLayer);
+            style.addLayer(symbolLayer);
+        } else {
+            style.addLayerBelow(fillLayer, getString(R.string.dest_icon_id));
+            style.addLayerBelow(symbolLayer, getString(R.string.dest_icon_id));
+        }
+        //style.addLayer(new FillLayer(getString(R.string.poi_fill_id), getString(R.string.floor_map_id)).withProperties(PropertyFactory.fillColor(Color.parseColor("#6db682")), PropertyFactory.fillOpacity(Float.valueOf(0.5f))).withFilter(Expression.eq(Expression.get("isRoute"), Expression.literal(false))));
+        //style.addLayer(new SymbolLayer(getString(R.string.poi_title_id), getString(R.string.floor_map_id)).withProperties(PropertyFactory.textField(Expression.get("title")), PropertyFactory.textSize(Float.valueOf(10.0f))).withFilter(Expression.eq(Expression.get("isRoute"), Expression.literal(false))));
     }
 
     public void addDestination(final PointOfInterest destination) {
@@ -142,8 +159,11 @@ public class TwoDViewFragment extends Fragment {
                         public void onStyleLoaded(Style style) {
                             SymbolLayer destinationIcon = new SymbolLayer(TwoDViewFragment.this.getString(R.string.dest_icon_id), TwoDViewFragment.this.getString(R.string.floor_map_id)).withProperties(PropertyFactory.iconImage(TwoDViewFragment.this.getString(R.string.dest_icon_img)), PropertyFactory.iconSize(Float.valueOf(0.5f)), PropertyFactory.iconAllowOverlap((Boolean) true)).withFilter(Expression.eq(Expression.get("identifier"), Expression.literal(destination.getIdentifier())));
                             LineLayer destinationLayout = new LineLayer(TwoDViewFragment.this.getString(R.string.destination_layout_id), TwoDViewFragment.this.getString(R.string.floor_map_id)).withProperties(PropertyFactory.lineWidth(Float.valueOf(3.0f)), PropertyFactory.lineColor("#FF0000")).withFilter(Expression.eq(Expression.get("identifier"), Expression.literal(destination.getIdentifier())));
-                            style.addLayerAbove(destinationIcon, getString(R.string.poi_title_id));
-                            style.addLayerAbove(destinationLayout, getString(R.string.poi_layout_id));
+                            style.addLayer(destinationIcon);
+                            style.addLayer(destinationLayout);
+
+                            //style.addLayerAbove(destinationIcon, getString(R.string.poi_title_id));
+                            //style.addLayerAbove(destinationLayout, getString(R.string.poi_layout_id));
                         }
                     });
                 }
