@@ -399,6 +399,15 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public void updateBottomSheetInfo(String direction) {
+        bottomSheetDirection.setText(direction);
+
+        // Show the bottom sheet if it is hidden
+        if (bottomSheetBehavior.getState() != BottomSheetBehavior.STATE_EXPANDED) {
+            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+        }
+    }
+
     private void onDestinationSelected(PointOfInterest destination) {
 //        Toast.makeText(this, "Selected: " + destination.getName(), Toast.LENGTH_SHORT).show();
         destinationView.setVisibility(View.GONE);
