@@ -70,7 +70,7 @@ public class BLEScanner {
                     BLEScanner.this.previousPrediction.setMac(scanned_mac);
                 }
                 if ((BLEScanner.this.mainActivity.getCurrentDestination() == null && BLEScanner.this.isRouting.booleanValue()) || (BLEScanner.this.mainActivity.getCurrentDestination() != null && !BLEScanner.this.isRouting.booleanValue())) {
-                    updateRouteUI(mainHandler, scanned_mac.getLatitude(), scanned_mac.getLongitude(), scanned_mac.getZ());
+                    updateRouteUI(mainHandler, previousPrediction.getMac().getLatitude(), previousPrediction.getMac().getLongitude(), previousPrediction.getMac().getZ());
                 }
             }
         }
@@ -106,14 +106,12 @@ public class BLEScanner {
 
                             if(!routeData.get("direction").isJsonNull()){
                                 Direction xDirection = Direction.getDirectionX(routeData.get("direction").getAsDouble(), orientationSensor.getOrientation());
-                                Toast.makeText(context, xDirection.toString(), Toast.LENGTH_SHORT).show();
 //                                update snackbar with the latest xDirection.toString()
                                 directionString = xDirection.toString();
                                 provideNavigationInstruction(xDirection);
                             }
                             if(!routeData.get("floor").isJsonNull()){
                                 Direction yDirection = Direction.getDirectionY(routeData.get("floor").getAsInt());
-                                Toast.makeText(context, yDirection.toString(), Toast.LENGTH_SHORT).show();
                                 directionString = yDirection.toString();
                             }
                             List<List<Double>> floorRoute = new ArrayList<>();

@@ -203,7 +203,7 @@ public class TwoDViewFragment extends Fragment {
     public void updateCameraBearing(final Double bearing) {
         this.mapView.getMapAsync(new OnMapReadyCallback() {
             public void onMapReady(MapboxMap mapboxMap) {
-                mapboxMap.easeCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition.Builder().target(mapboxMap.getCameraPosition().target).bearing(bearing.doubleValue()).build()), 500);
+                mapboxMap.easeCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition.Builder().target(mapboxMap.getCameraPosition().target).bearing(bearing.doubleValue()).build()), 1000);
             }
         });
     }

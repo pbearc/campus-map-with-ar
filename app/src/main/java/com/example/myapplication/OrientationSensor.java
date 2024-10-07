@@ -113,7 +113,6 @@ public class OrientationSensor implements SensorEventListener {
                                 JsonObject routeData = new Gson().fromJson(response.body().string(), JsonObject.class);
                                 if(!routeData.get("direction").isJsonNull()){
                                     Direction xDirection = Direction.getDirectionX(routeData.get("direction").getAsDouble(), orientation);
-                                    Toast.makeText(mainActivity, xDirection.toString(), Toast.LENGTH_SHORT).show();
                                     provideNavigationInstruction(xDirection);
                                     mainActivity.updateBottomSheetInfo(xDirection.toString());
                                 }
