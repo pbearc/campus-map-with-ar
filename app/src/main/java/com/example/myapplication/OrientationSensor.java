@@ -114,7 +114,8 @@ public class OrientationSensor implements SensorEventListener {
                                 if(!routeData.get("direction").isJsonNull()){
                                     Direction xDirection = Direction.getDirectionX(routeData.get("direction").getAsDouble(), orientation);
                                     Toast.makeText(mainActivity, xDirection.toString(), Toast.LENGTH_SHORT).show();
-                                    provideNavigationInstruction(xDirection); // Provide audio instruction
+                                    provideNavigationInstruction(xDirection);
+                                    mainActivity.updateBottomSheetInfo(xDirection.toString());
                                 }
                             } catch (IOException e) {
                                 throw new RuntimeException(e);

@@ -125,11 +125,11 @@ public class BLEScanner {
 
                             // Create final variables to pass to the lambda
                             final String finalDirectionString = directionString;
-                            final String finalTimeAndDistance = "2 min" + " | " + distance;
-                            final String finalArrivalTime = "Arrival: 12:34pm"; // Placeholder
+                            final String finalTimeAndDistance = "2 min" + " | " + distance +" m";
+                            final String finalArrivalTime = "Arrival Time: 12:34pm"; // Placeholder
 
                             handler.post(() -> {
-                                mainActivity.updateBottomSheetInfo(finalDirectionString, finalTimeAndDistance, finalArrivalTime);                                BLEScanner.this.twoDViewFragment.removeRoute();
+                                mainActivity.updateBottomSheetInfo(finalDirectionString, finalTimeAndDistance, finalArrivalTime);
                                 BLEScanner.this.twoDViewFragment.removeRoute();
                                 BLEScanner.this.twoDViewFragment.addRoute(floorRoute);
                             });
