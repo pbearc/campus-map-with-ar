@@ -229,7 +229,7 @@ public class BLEScanner {
                 speak(context.getString(R.string.go_down)); // Use localized string
                 break;
             default:
-//                speak(context.getString(R.string.walk_straight)); // Use localized string
+                speak(context.getString(R.string.walk_straight)); // Use localized string
                 break;
         }
     }
