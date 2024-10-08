@@ -211,11 +211,23 @@ public class BLEScanner {
         setLanguage(Locale.getDefault()); // Use the user's default locale or a specific locale
 
         switch (direction) {
+            case FRONT:
+                speak(context.getString(R.string.walk_straight)); // Use localized string
+                break;
             case LEFT:
                 speak(context.getString(R.string.turn_left)); // Use localized string
                 break;
+            case BACK:
+                speak(context.getString(R.string.walk_backward)); // Use localized string
+                break;
             case RIGHT:
                 speak(context.getString(R.string.turn_right)); // Use localized string
+                break;
+            case UP:
+                speak(context.getString(R.string.go_up)); // Use localized string
+                break;
+            case DOWN:
+                speak(context.getString(R.string.go_down)); // Use localized string
                 break;
             default:
                 speak(context.getString(R.string.walk_straight)); // Use localized string

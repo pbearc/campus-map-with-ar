@@ -21,5 +21,9 @@
     <string name="turn_left">向左转</string>
     <string name="turn_right">向右转</string>
     <string name="walk_straight">直走</string>
+    <string name="go_up">上一层楼</string>
+    <string name="go_down">下一层楼</string>
+    <string name="walk_backward">向后走</string>
+
     <string name="menu_change_language">更改语言</string>
 </resources>
