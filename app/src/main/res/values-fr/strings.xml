@@ -21,8 +21,8 @@
     <string name="turn_left">Tourner à gauche.</string>
     <string name="turn_right">Tourner à droite.</string>
     <string name="walk_straight">Marcher tout droit.</string>
-    <string name="go_up">Montez d'un étage.</string>
-    <string name="go_down">Descendez d'un étage.</string>
+    <string name="go_up">Montez dun étage.</string>
+    <string name="go_down">Descendez dun étage.</string>
     <string name="walk_backward">Reculez.</string>
 
 </resources>
