@@ -162,6 +162,7 @@ public class BLEScanner {
         this.isRouting = false;
         this.orientationSensor = orientationSensor;
         navApiInterface2.getMacs().enqueue(new Callback<List<Mac>>() {
+
             public void onResponse(Call<List<Mac>> call, Response<List<Mac>> response) {
                 for (Mac mac : response.body()) {
                     BLEScanner.this.targetBeacons.put(mac.getAddress(), mac);
