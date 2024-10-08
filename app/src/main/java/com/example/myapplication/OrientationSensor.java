@@ -177,6 +177,9 @@ public class OrientationSensor implements SensorEventListener {
             case DOWN:
                 speak(context.getString(R.string.go_down)); // Use localized string
                 break;
+            case COMPLETE:
+                speak(context.getString(R.string.complete));
+                break;
             default:
                 speak(context.getString(R.string.walk_straight)); // Use localized string
                 break;

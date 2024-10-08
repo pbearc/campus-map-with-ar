@@ -6,7 +6,8 @@ public enum Direction {
     BACK(135, 225),
     LEFT(225, 315),
     UP(null, null),
-    DOWN(null, null);
+    DOWN(null, null),
+    COMPLETE(null, null);
 
     private static final int LB_DEGREE = 0;
     private static final int UB_DEGREE = 360;
@@ -33,6 +34,8 @@ public enum Direction {
                 return "To Upper Floor";
             case DOWN:
                 return "To Lower Floor";
+            case COMPLETE:
+                return "Complete";
             default:
                 return "Unknown Direction";
         }

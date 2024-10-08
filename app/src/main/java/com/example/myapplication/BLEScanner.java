@@ -55,7 +55,7 @@ public class BLEScanner {
             Handler mainHandler = new Handler(BLEScanner.this.mainActivity.getMainLooper());
             if (scanned_mac_address != null && BLEScanner.this.targetBeacons.containsKey(scanned_mac_address)) {
                 if (BLEScanner.this.previousPrediction != null) {
-                    Log.d(BLEScanner.TAG, scanned_mac_address + ":" + Integer.toString(scanned_mac_rssi) + " | " + BLEScanner.this.previousPrediction.getMac_address() + ":" + Integer.toString(BLEScanner.this.previousPrediction.getRssi()));
+                    //Log.d(BLEScanner.TAG, scanned_mac_address + ":" + Integer.toString(scanned_mac_rssi) + " | " + BLEScanner.this.previousPrediction.getMac_address() + ":" + Integer.toString(BLEScanner.this.previousPrediction.getRssi()));
                 }
                 if (BLEScanner.this.previousPrediction == null) {
                     updateUserMapUI(mainHandler, scanned_mac.getLatitude(), scanned_mac.getLongitude(), scanned_mac.getZ());
@@ -68,6 +68,7 @@ public class BLEScanner {
                     BLEScanner.this.previousPrediction.setMac_address(scanned_mac_address);
                     BLEScanner.this.previousPrediction.setRssi(scanned_mac_rssi);
                     BLEScanner.this.previousPrediction.setMac(scanned_mac);
+                    //provideNavigationInstruction(Direction.COMPLETE);
                 }
                 if ((BLEScanner.this.mainActivity.getCurrentDestination() == null && BLEScanner.this.isRouting.booleanValue()) || (BLEScanner.this.mainActivity.getCurrentDestination() != null && !BLEScanner.this.isRouting.booleanValue())) {
                     updateRouteUI(mainHandler, previousPrediction.getMac().getLatitude(), previousPrediction.getMac().getLongitude(), previousPrediction.getMac().getZ());
@@ -104,11 +105,20 @@ public class BLEScanner {
 
                             String directionString = "";
 
+
                             if(!routeData.get("direction").isJsonNull()){
                                 Direction xDirection = Direction.getDirectionX(routeData.get("direction").getAsDouble(), orientationSensor.getOrientation());
 //                                update snackbar with the latest xDirection.toString()
-                                directionString = xDirection.toString();
-                                provideNavigationInstruction(xDirection);
+                                Log.d(TAG, Double.toString(latitude) + " | " + Double.toString(longitude));
+                                if (latitude == 3.06472595220122 && longitude == 101.600474029472){
+                                    provideNavigationInstruction(Direction.COMPLETE);
+                                    directionString = "COMPLETED";
+                                } else{
+                                    provideNavigationInstruction(xDirection);
+                                    directionString = xDirection.toString();
+                                }
+
+
                             }
                             if(!routeData.get("floor").isJsonNull()){
                                 Direction yDirection = Direction.getDirectionY(routeData.get("floor").getAsInt());
@@ -228,6 +238,9 @@ public class BLEScanner {
                 break;
             case DOWN:
                 speak(context.getString(R.string.go_down)); // Use localized string
+                break;
+            case COMPLETE:
+                speak(context.getString(R.string.complete));
                 break;
             default:
                 speak(context.getString(R.string.walk_straight)); // Use localized string

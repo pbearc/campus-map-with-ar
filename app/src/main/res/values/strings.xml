@@ -23,5 +23,7 @@
     <string name="go_up">Go down one floor.</string>
     <string name="go_down">Go up one floor.</string>
     <string name="walk_backward">Walk backward.</string>
+    <string name="complete">You have reach your destination.</string>
+
     <string name="menu_change_language">Change Language</string>
 </resources>

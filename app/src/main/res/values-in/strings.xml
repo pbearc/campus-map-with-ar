@@ -24,5 +24,7 @@
     <string name="go_up">Naik satu lantai.</string>
     <string name="go_down">Turun satu lantai.</string>
     <string name="walk_backward">Berjalan mundur.</string>
+    <string name="complete">Anda telah mencapai tujuan Anda.</string>
+
     <string name="menu_change_language">Ganti Bahasa</string>
 </resources>
