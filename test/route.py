@@ -1,11 +1,6 @@
 import os, json, math, heapq, copy
-from main.db import get_db
-from flask import Blueprint, current_app, request, jsonify
 from geopy.distance import geodesic
-ROE_m = 6371000
 SOURCE_V = 'S'
-
-bp = Blueprint('route', __name__, url_prefix='/route') 
         
 class Graph:
     def __init__(self):
@@ -13,7 +8,7 @@ class Graph:
         self.construct_base_graph()
     
     def construct_base_graph(self):
-        path = os.path.join(current_app.root_path, 'route')
+        path = os.path.join(os.getcwd(), '../main/route')
         for file in os.listdir(path):
             with open(os.path.join(path, file), 'r') as f:
                 route = json.load(f)
@@ -147,16 +142,3 @@ def get_radian(degree):
 def get_degree(radian):
     return radian * 180 / math.pi
     
-@bp.get('/get/<int:poi_id>')
-def get_route(poi_id):
-    route_graph = copy.deepcopy(current_app.base_route)
-    user_lat = request.args.get('latitude', type=float)
-    user_long = request.args.get('longitude', type=float)
-    user_floor = request.args.get('floor', type=int)
-    route_graph.add_source_vertex(user_lat, user_long, user_floor)
-    route, distance, direction, floor = route_graph.get_route(poi_id)
-    # for vertices in route_graph.vertices:
-    #     print(f"{vertices}:{route_graph.vertices[vertices].rep}")
-    #     for edge in route_graph.vertices[vertices].adj:
-    #         print(edge.v.id)
-    return jsonify({"route": route, "distance": distance, "direction": direction, "floor": floor})
