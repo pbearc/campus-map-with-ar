@@ -27,4 +27,18 @@
     <string name="complete">Anda telah mencapai tujuan Anda.</string>
 
     <string name="menu_change_language">Ganti Bahasa</string>
+    <string name="direction">Arah</string>
+    <string name="time_distance">Waktu tersisa | Jarak tersisa</string>
+    <string name="arrival_time">Waktu Tiba</string>
+    <string name="destination">Tujuan</string>
+    <string name="stop">BERHENTI</string>
+    <string name="move_forward_dir">Maju</string>
+    <string name="turn_right_dir">Belok Kanan</string>
+    <string name="move_backward_dir">Mundur</string>
+    <string name="turn_left_dir">Belok Kiri</string>
+    <string name="to_upper_floor_dir">Ke Lantai Atas</string>
+    <string name="to_lower_floor_dir">Ke Lantai Bawah</string>
+    <string name="complete_dir">Selesai</string>
+    <string name="unknown_direction_dir">Arah Tidak Diketahui</string>
+
 </resources>

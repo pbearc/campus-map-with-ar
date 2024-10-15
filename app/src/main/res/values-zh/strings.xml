@@ -27,4 +27,18 @@
     <string name="complete">您已到达目的地。</string>
 
     <string name="menu_change_language">更改语言</string>
+    <string name="direction">方向</string>
+    <string name="time_distance">剩余时间 | 剩余距离</string>
+    <string name="arrival_time">到达时间</string>
+    <string name="destination">目的地</string>
+    <string name="stop">停止</string>
+    <string name="move_forward_dir">向前移动</string>
+    <string name="turn_right_dir">向右转</string>
+    <string name="move_backward_dir">向后移动</string>
+    <string name="turn_left_dir">向左转</string>
+    <string name="to_upper_floor_dir">到达上层</string>
+    <string name="to_lower_floor_dir">到达下层</string>
+    <string name="complete_dir">完成</string>
+    <string name="unknown_direction_dir">未知方向</string>
+
 </resources>

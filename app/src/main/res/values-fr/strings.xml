@@ -26,5 +26,18 @@
     <string name="complete">Vous êtes arrivé à destination.</string>
 
     <string name="walk_backward">Reculez.</string>
+    <string name="direction">Direction</string>
+    <string name="time_distance">Temps restant | Distance restante</string>
+    <string name="arrival_time">Heure darrivee</string>
+    <string name="destination">Destination</string>
+    <string name="stop">ARRÊT</string>
+    <string name="move_forward_dir">Avancer</string>
+    <string name="turn_right_dir">Tourner à droite</string>
+    <string name="move_backward_dir">Reculer</string>
+    <string name="turn_left_dir">Tourner à gauche</string>
+    <string name="to_upper_floor_dir">Vers letage superieur</string>
+    <string name="to_lower_floor_dir">Vers letage inferieur</string>
+    <string name="complete_dir">Terminé</string>
+    <string name="unknown_direction_dir">Direction Inconnue</string>
 
 </resources>
