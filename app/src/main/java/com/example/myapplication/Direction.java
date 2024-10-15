@@ -1,5 +1,7 @@
 package com.example.myapplication;
 
+import android.content.Context;
+
 public enum Direction {
     FRONT(315, 45),
     RIGHT(45, 135),
@@ -19,25 +21,25 @@ public enum Direction {
         this.lbDegree = lbDegree;
     }
 
-    @Override
-    public String toString() {
+//    @Override
+    public String toString(Context context) {
         switch (this) {
             case FRONT:
-                return "Move Forward";
+                return context.getString(R.string.move_forward_dir);
             case RIGHT:
-                return "Turn Right";
+                return context.getString(R.string.turn_right_dir);
             case BACK:
-                return "Move Backward";
+                return context.getString(R.string.move_backward_dir);
             case LEFT:
-                return "Turn Left";
+                return context.getString(R.string.turn_left_dir);
             case UP:
-                return "To Upper Floor";
+                return context.getString(R.string.to_upper_floor_dir);
             case DOWN:
-                return "To Lower Floor";
+                return context.getString(R.string.to_lower_floor_dir);
             case COMPLETE:
-                return "Complete";
+                return context.getString(R.string.complete_dir);
             default:
-                return "Unknown Direction";
+                return context.getString(R.string.unknown_direction_dir);
         }
     }
 
