@@ -87,6 +87,7 @@ public class BLEScanner {
         }
 
         public void updateRouteUI(final Handler handler, Double latitude, Double longitude, final int z) {
+            setLanguage(Locale.getDefault());
             if (BLEScanner.this.twoDViewFragment.isInitializedMap()) {
                 if (BLEScanner.this.mainActivity.getCurrentDestination() == null) {
                     Boolean unused = BLEScanner.this.isRouting = false;
@@ -134,7 +135,7 @@ public class BLEScanner {
                             // Create final variables to pass to the lambda
                             final String finalDirectionString = directionString;
                             final String finalTimeAndDistance = "2 min" + " | " + distance +" m";
-                            final String finalArrivalTime = "Arrival Time: 12:34pm"; // Placeholder
+                            final String finalArrivalTime = context.getString(R.string.arrival_time)+ ": 12:34pm"; // Placeholder
 
                             handler.post(() -> {
                                 mainActivity.updateBottomSheetInfo(finalDirectionString, finalTimeAndDistance, finalArrivalTime);

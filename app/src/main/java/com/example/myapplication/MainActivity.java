@@ -52,7 +52,7 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity {
-    public static final String BASE_URL = "http://192.168.30.126:5001";
+    public static final String BASE_URL = "http://10.192.57.160:5002";
     private static final int CAMERA_PERMISSION_REQUEST_CODE = 1001;
     private static final int REQUEST_PERMISSIONS = 1;
     private DestinationAdapter adapter;
@@ -93,6 +93,8 @@ public class MainActivity extends AppCompatActivity {
         } else {
             requestCameraPermission();
         }
+        Direction.setContext(this);
+
         checkPermissions();
         this.retrofit = new Retrofit.Builder()
                 .baseUrl(BASE_URL)
@@ -300,6 +302,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
         builder.create().show();
+        Direction.setContext(this);
     }
 
     private void setAppLanguage(String lang) {

@@ -1,6 +1,10 @@
 package com.example.myapplication;
 
 import android.content.Context;
+import android.speech.tts.TextToSpeech;
+import android.util.Log;
+
+import java.util.Locale;
 
 public enum Direction {
     FRONT(315, 45),
@@ -21,8 +25,15 @@ public enum Direction {
         this.lbDegree = lbDegree;
     }
 
-//    @Override
-    public String toString(Context context) {
+    private static Context context;
+    public static void setContext(Context newContext){
+        context = newContext;
+    }
+
+    @Override
+    public String toString() {
+//        Context appContext = context.getApplicationContext();
+
         switch (this) {
             case FRONT:
                 return context.getString(R.string.move_forward_dir);
